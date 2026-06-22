@@ -1,46 +1,48 @@
 import { useEffect, useRef, useState } from 'react'
+import { Cpu, Code2, Server, Cloud, Layers, Lock } from 'lucide-react'
 
 const categories = [
-  {
-    name: 'Systems & Low-Level',
-    icon: '⚙️',
-    skills: ['C/C++', 'Rust', 'OpenMP', 'CUDA', 'Chromium', 'WebAssembly'],
+  { 
+    name: 'Low-Level Systems', 
+    icon: Cpu,
+    skills: ['C/C++', 'Rust', 'OpenMP', 'CUDA', 'Chromium Source', 'WebAssembly'] 
   },
-  {
-    name: 'Languages',
-    icon: '💻',
-    skills: ['Go', 'Python', 'TypeScript', 'SQL', 'Objective-C'],
+  { 
+    name: 'Core Languages', 
+    icon: Code2,
+    skills: ['Go', 'Python', 'TypeScript', 'SQL', 'Objective-C', 'Bash'] 
   },
-  {
-    name: 'Backend & Infra',
-    icon: '🏗️',
-    skills: ['Flask', 'Kafka', 'Docker', 'Linux', 'Distributed Systems'],
+  { 
+    name: 'Backend Architecture', 
+    icon: Server,
+    skills: ['Flask', 'Kafka', 'Docker', 'Linux/Unix', 'Distributed Systems', 'Event-Driven'] 
   },
-  {
-    name: 'Databases & Cloud',
-    icon: '☁️',
-    skills: ['PostgreSQL', 'Redis', 'GCP', 'Firebase', 'BigQuery'],
+  { 
+    name: 'Cloud & Database', 
+    icon: Cloud,
+    skills: ['PostgreSQL', 'Redis', 'GCP', 'Firebase', 'BigQuery', 'Firestore'] 
   },
-  {
-    name: 'Frontend & Browser',
-    icon: '🌐',
-    skills: ['React', 'Browser Extensions', 'WebRTC', 'Service Workers'],
+  { 
+    name: 'Browser & Frontend', 
+    icon: Layers,
+    skills: ['React', 'Browser Extensions', 'WebRTC', 'HTML5 Canvas', 'TailwindCSS'] 
   },
-  {
-    name: 'Security & Auth',
-    icon: '🔐',
-    skills: ['OIDC', 'DLP', 'Enterprise IDP', 'mTLS', 'Device Trust'],
+  { 
+    name: 'Identity & Security', 
+    icon: Lock,
+    skills: ['OIDC', 'DLP Masking', 'Enterprise IDP', 'mTLS', 'Device Trust', 'Browser Hardening'] 
   },
 ]
 
-function SkillCategory({ cat, index }) {
+function Category({ cat, index }) {
   const ref = useRef(null)
   const [visible, setVisible] = useState(false)
+  const Icon = cat.icon
 
   useEffect(() => {
     const obs = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) setVisible(true) },
-      { threshold: 0.2 }
+      { threshold: 0.05 }
     )
     if (ref.current) obs.observe(ref.current)
     return () => obs.disconnect()
@@ -49,16 +51,25 @@ function SkillCategory({ cat, index }) {
   return (
     <div
       ref={ref}
-      className={`glass rounded-lg p-5 transition-all duration-500 hover:border-terminal-green/30 ${visible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
-      style={{ transitionDelay: `${index * 80}ms` }}
+      className={`glass rounded-xl p-5 border border-white/5 hover:border-accent-indigo/20 transition-all duration-500 ${
+        visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+      }`}
+      style={{ transitionDelay: `${index * 50}ms` }}
     >
-      <div className="flex items-center gap-2 mb-3">
-        <span className="text-lg">{cat.icon}</span>
-        <h3 className="font-mono text-sm font-bold text-terminal-green">{cat.name}</h3>
+      <div className="flex items-center gap-2.5 mb-4">
+        <div className="w-7 h-7 rounded-lg bg-accent-indigo/10 flex items-center justify-center border border-accent-indigo/25">
+          <Icon size={14} className="text-accent-indigo" />
+        </div>
+        <h3 className="font-mono text-xs font-bold text-text-secondary uppercase tracking-wider">
+          {cat.name}
+        </h3>
       </div>
       <div className="flex flex-wrap gap-2">
         {cat.skills.map(s => (
-          <span key={s} className="px-2 py-1 text-xs font-mono text-text bg-surface-2 rounded border border-border hover:border-terminal-green/30 hover:text-terminal-green transition-colors cursor-default">
+          <span 
+            key={s} 
+            className="px-3 py-1.5 text-xs font-mono text-text-secondary bg-white/5 rounded-lg border border-white/5 hover:border-accent-indigo/30 hover:text-white hover:bg-accent-indigo/5 transition-all duration-200"
+          >
             {s}
           </span>
         ))}
@@ -69,15 +80,18 @@ function SkillCategory({ cat, index }) {
 
 export default function Skills() {
   return (
-    <section id="skills" className="relative z-10 max-w-5xl mx-auto px-6 py-24">
-      <h2 className="font-mono text-2xl font-bold text-terminal-green mb-12 flex items-center gap-3">
-        <span className="text-text-dim">03.</span> Skills
-        <span className="flex-1 h-px bg-border ml-4" />
+    <section id="skills" className="section-container relative">
+      {/* Background glow */}
+      <div className="absolute top-1/2 right-10 w-[300px] h-[300px] bg-accent-indigo/5 rounded-full blur-[120px] pointer-events-none" />
+
+      <h2 className="font-mono text-xl font-bold text-accent-indigo mb-12 flex items-center gap-3">
+        <span className="text-text-muted text-sm">03.</span> Skills
+        <span className="flex-1 h-px bg-border" />
       </h2>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {categories.map((cat, i) => (
-          <SkillCategory key={cat.name} cat={cat} index={i} />
+          <Category key={cat.name} cat={cat} index={i} />
         ))}
       </div>
     </section>

@@ -1,45 +1,59 @@
 import { useEffect, useRef, useState } from 'react'
-import { ExternalLink } from 'lucide-react'
+import { ExternalLink, Play } from 'lucide-react'
+
+const Github = ({ size = 15 }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
+    <path d="M9 18c-4.51 2-5-2-7-2" />
+  </svg>
+)
 
 const projects = [
   {
-    title: 'DAP: Dead-Block Aware GPU Prefetching',
-    description: 'Hardware prefetcher modules (next-line and strided) in MGPUsim. Reduced cache miss rates by 32% with 80% prefetch hit rate. Profiled dead-block rates across six multi-GPU benchmarks identifying >90% dead-on-arrival rate.',
-    tech: ['Go', 'GPU Architecture', 'Cache Coherence', 'MGPUsim'],
-    metrics: ['32% miss reduction', '80% hit rate', '>90% DOA rate'],
+    title: 'DAP: GPU Prefetching',
+    tagline: '32% Cache Miss Cut · 80% Prefetch Hit Rate',
+    description: 'Developed next-line and strided hardware prefetcher modules in MGPUsim. Identified >90% dead-on-arrival cache lines and resolved coherence deadlocks in multi-GPU benchmarks.',
+    tech: ['Go', 'GPU Architecture', 'Cache Coherence', 'Simulators'],
+    demoLink: '#interactive',
   },
   {
-    title: 'Parallel Sparse Tensor Decomposition',
-    description: 'Parallelised Tucker decomposition on sparse tensors (CSF format) using C++/OpenMP. Reduced complexity from O(n^5) to O(n^4) via intermediate buffering. Benchmarked 7 parallel algorithms across 3 modes.',
-    tech: ['C++', 'OpenMP', 'HPC', 'Sparse Tensors'],
-    metrics: ['O(n^5) → O(n^4)', '2.87x speedup', '7 algorithms'],
+    title: 'Parallel Tensor Decomposition',
+    tagline: 'O(n⁵) → O(n⁴) Complexity · 2.87x Speedup',
+    description: 'Accelerated Tucker decomposition on sparse CSF tensors using C++ and OpenMP. Formulated 7 parallel algorithms across 3 decomposition modes to optimize cache locality.',
+    tech: ['C++', 'OpenMP', 'HPC', 'Sparse Tensor Math'],
+    demoLink: '#interactive',
   },
   {
-    title: 'Custom Zip Library (Rust/WASM)',
-    description: 'Reduced client-side memory footprint by 80% for in-browser zip operations using Rust/WebAssembly with OPFS streaming, enabling large file processing without browser tab crashes.',
-    tech: ['Rust', 'WebAssembly', 'OPFS', 'Streaming'],
-    metrics: ['80% memory reduction', 'No tab crashes', 'Streaming I/O'],
-  },
-  {
-    title: 'Rituals: Collaborative Habit Tracker',
-    description: 'Built collaborative habit tracker with streak tracking and photo proof. Designed peer-to-peer photo recovery where devices detect broken links via Firestore listeners and re-upload from local cache.',
-    tech: ['TypeScript', 'React Native', 'Firebase', 'Cloud Functions'],
-    metrics: ['P2P recovery', 'Zero server storage', 'Free-tier backend'],
+    title: 'Rust/WASM Zip Library',
+    tagline: '80% Memory Drop · OPFS Streaming Appends',
+    description: 'In-browser client-side zip creation using Rust/WebAssembly. Appends data directly to the zip tail via Origin Private File System, avoiding browser crashes for large archives.',
+    tech: ['Rust', 'WebAssembly', 'OPFS', 'fflate'],
+    demoLink: '#interactive',
   },
   {
     title: 'browser.security',
-    description: 'Showcased at DEF CON with 30+ attacks demonstrating how Secure Web Gateways fail at last-mile reassembly. Covered by Forbes. Sensitized industry to fundamental SWG limitations.',
-    tech: ['Security Research', 'Browser Internals', 'DEF CON'],
-    metrics: ['30+ attacks', 'DEF CON talk', 'Forbes coverage'],
+    tagline: 'DEF CON 2024 · 30+ SWG Bypasses · Forbes Coverage',
+    description: 'Showcased the Last Mile Reassembly Attack illustrating how Secure Web Gateways fail at client-side data inspection. Highlighted in global cybersecurity press.',
+    tech: ['Security Research', 'Browser Internals', 'SWG Bypasses'],
     link: 'https://browser.security/',
   },
-]
-
-const achievements = [
-  'Top 1% in JEE Advanced 2021',
-  'Knight (1850+) on Leetcode',
-  'Students\' General Secretary, IIT Tirupati (elected highest student representative for 2000+ members)',
-  'First net-zero financial year through strategic sponsorships despite 25% budget cut',
+  {
+    title: 'Rituals: Collaborative Habit Tracker',
+    tagline: 'P2P Recovery · Event-Driven Architecture',
+    description: 'Built a cross-platform mobile app with Firestore listeners to enable peer-to-peer data recovery, eliminating server storage costs. Powered by TypeScript Cloud Functions.',
+    tech: ['TypeScript', 'React Native', 'Firebase', 'Firestore'],
+    github: 'https://github.com/Navknight',
+  },
 ]
 
 function ProjectCard({ project, index }) {
@@ -49,7 +63,7 @@ function ProjectCard({ project, index }) {
   useEffect(() => {
     const obs = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) setVisible(true) },
-      { threshold: 0.1 }
+      { threshold: 0.05 }
     )
     if (ref.current) obs.observe(ref.current)
     return () => obs.disconnect()
@@ -58,38 +72,67 @@ function ProjectCard({ project, index }) {
   return (
     <div
       ref={ref}
-      className={`glass rounded-lg p-6 hover:border-terminal-green/30 transition-all duration-500 group ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-      style={{ transitionDelay: `${index * 100}ms` }}
+      className={`glass rounded-2xl p-6 flex flex-col justify-between h-full border border-white/5 hover:border-accent-indigo/35 shadow-xl hover:shadow-accent-indigo/5 transition-all duration-500 group ${
+        visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+      }`}
+      style={{ transitionDelay: `${index * 80}ms` }}
     >
-      <div className="flex items-start justify-between mb-3">
-        <h3 className="font-mono text-base font-bold text-terminal-green group-hover:glow-text transition-all">
-          {project.title}
-        </h3>
-        {project.link && (
-          <a href={project.link} target="_blank" rel="noopener" className="text-text-dim hover:text-terminal-green">
-            <ExternalLink size={16} />
+      <div>
+        <div className="flex items-start justify-between gap-3 mb-2">
+          <h3 className="font-bold text-base text-text group-hover:text-accent-indigo transition-colors duration-300">
+            {project.title}
+          </h3>
+          
+          <div className="flex items-center gap-2">
+            {project.github && (
+              <a 
+                href={project.github} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-text-secondary hover:text-white transition-colors"
+                title="View Source"
+              >
+                <Github size={15} />
+              </a>
+            )}
+            {project.link && (
+              <a 
+                href={project.link} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-text-secondary hover:text-accent-indigo transition-colors"
+                title="Visit Website"
+              >
+                <ExternalLink size={15} />
+              </a>
+            )}
+          </div>
+        </div>
+
+        <p className="font-mono text-xs text-accent-indigo/90 font-medium mb-3">{project.tagline}</p>
+        <p className="text-xs text-text-secondary leading-relaxed mb-6">{project.description}</p>
+      </div>
+
+      <div>
+        {/* Tech stack tags */}
+        <div className="flex flex-wrap gap-1.5 mb-5">
+          {project.tech.map(t => (
+            <span key={t} className="px-2 py-1 text-[10px] font-mono text-text-secondary bg-white/5 rounded-lg border border-white/5">
+              {t}
+            </span>
+          ))}
+        </div>
+
+        {/* Interactive CTA buttons */}
+        {project.demoLink && (
+          <a 
+            href={project.demoLink}
+            className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider font-bold text-accent-indigo hover:text-white bg-accent-indigo/10 hover:bg-accent-indigo px-3.5 py-2 rounded-xl transition-all duration-300 w-fit"
+          >
+            <Play size={10} className="fill-current" />
+            Launch Demo
           </a>
         )}
-      </div>
-
-      <p className="text-sm text-text-dim mb-4 leading-relaxed">{project.description}</p>
-
-      {/* Metrics */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        {project.metrics.map(m => (
-          <span key={m} className="px-2 py-0.5 text-xs font-mono text-terminal-amber bg-terminal-amber/10 rounded border border-terminal-amber/20">
-            {m}
-          </span>
-        ))}
-      </div>
-
-      {/* Tech */}
-      <div className="flex flex-wrap gap-2">
-        {project.tech.map(t => (
-          <span key={t} className="px-2 py-0.5 text-xs font-mono text-text-dim">
-            {t}
-          </span>
-        ))}
       </div>
     </div>
   )
@@ -97,29 +140,19 @@ function ProjectCard({ project, index }) {
 
 export default function Projects() {
   return (
-    <section id="projects" className="relative z-10 max-w-5xl mx-auto px-6 py-24">
-      <h2 className="font-mono text-2xl font-bold text-terminal-green mb-12 flex items-center gap-3">
-        <span className="text-text-dim">02.</span> Projects & Achievements
-        <span className="flex-1 h-px bg-border ml-4" />
+    <section id="projects" className="section-container relative">
+      {/* Glow */}
+      <div className="absolute top-1/3 right-1/4 w-[400px] h-[400px] bg-accent-indigo/5 rounded-full blur-[140px] pointer-events-none" />
+
+      <h2 className="font-mono text-xl font-bold text-accent-indigo mb-12 flex items-center gap-3">
+        <span className="text-text-muted text-sm">02.</span> Projects
+        <span className="flex-1 h-px bg-border" />
       </h2>
 
-      <div className="grid md:grid-cols-2 gap-6 mb-12">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {projects.map((p, i) => (
           <ProjectCard key={i} project={p} index={i} />
         ))}
-      </div>
-
-      {/* Achievements */}
-      <div className="glass rounded-lg p-6">
-        <h3 className="font-mono text-sm font-bold text-terminal-amber mb-4">// achievements</h3>
-        <div className="grid sm:grid-cols-2 gap-3">
-          {achievements.map((a, i) => (
-            <div key={i} className="flex gap-2 text-sm">
-              <span className="text-terminal-green shrink-0">◆</span>
-              <span className="text-text-dim">{a}</span>
-            </div>
-          ))}
-        </div>
       </div>
     </section>
   )
