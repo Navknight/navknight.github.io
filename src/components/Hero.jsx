@@ -9,101 +9,79 @@ const COMMANDS = {
     '  whoami       About me',
     '  skills       Tech stack',
     '  experience   Work history',
-    '  projects     Builds & research',
-    '  hire         The pitch',
-    '  neofetch     System specs',
-    '  increase-speed Speed up city & spawn workers',
+    '  projects     Research & builds',
+    '  neofetch     System info',
+    '  increase-speed   ⚡',
     '  clear        Clear console',
-    '',
-    '  Try running: increase-speed',
     '',
   ],
   whoami: () => [
     '',
     '  Abhinav Gupta',
-    '  GPU & Systems Engineer',
-    '  IIT Tirupati \'25 | Zscaler',
+    '  Software Engineer @ Zscaler (via SquareX)',
+    '  B.Tech CS, IIT Tirupati \'25',
     '',
-    '  I build at the intersection of low-level systems',
-    '  programming and high-performance web applications.',
+    '  Building multi-tenant enterprise backends,',
+    '  custom Chromium forks, and GPU memory systems.',
     '',
   ],
   skills: () => [
     '',
-    '  Languages:  C/C++ · Rust · Go · Python · TypeScript',
-    '  Systems:    CUDA · OpenMP · WASM · Chromium internals',
-    '  Backend:    Kafka · PostgreSQL · Redis · GCP · Flask',
-    '  Frontend:   React · Browser Extensions · WebRTC',
+    '  Languages:   C/C++ · Python · Go · Rust · TypeScript · SQL',
+    '  Infra:       Docker · Linux · Git · Kafka · Distributed Systems',
+    '  Backend:     Flask · PostgreSQL · Redis · GCP (Cloud Run, IAM, Pub/Sub)',
+    '  Frontend:    React · Browser Extensions · WebAssembly',
+    '  Research:    OpenMP · GPU Architecture · Cache Coherence · MGPUsim',
     '',
   ],
   experience: () => [
     '',
-    '  Zscaler (via SquareX)',
-    '  Software Engineer | 2025–Present',
-    '  ──────────────────────────────',
-    '  • Multi-tenant enterprise cloud backend systems',
-    '  • Custom Chromium fork posture & security APIs',
-    '  • DLP engine matching pattern extension core',
-    '  • Custom OIDC IDP integrations & Kafka reloading',
+    '  Zscaler (via SquareX acquisition)',
+    '  Software Engineer | Jan 2025–Present',
+    '  ───────────────────────────────────',
+    '  • Multi-tenant enterprise backend — policy evaluation,',
+    '    cloud storage routing, DLP (Python/Flask, PostgreSQL, Redis)',
+    '  • Chromium fork — device posture APIs, code signing,',
+    '    OS password challenges, AV detection (Windows + macOS)',
+    '  • Custom OIDC IDP — SquareX as second auth factor,',
+    '    Kafka hot-reloading across 20+ tenants (Go, React)',
+    '  • Browser extension security engine — sub-ms DLP pattern',
+    '    matching, encrypted WebSocket agent comms (TypeScript)',
+    '  • Firefox fork for Android + CLI patch management system',
+    '  • browser.security — DEF CON, 30+ SWG bypasses, Forbes',
     '',
   ],
   projects: () => [
     '',
-    '  [1] GPU Prefetcher (MGPUsim) — 32% miss reduction',
-    '  [2] Tensor Decomposition — O(n⁴) OpenMP speedup',
-    '  [3] WASM Zip — constant 128KB memory stream (OPFS)',
-    '  [4] browser.security — DEF CON 2024 bypasses',
+    '  [1] DAP: Dead-Block Aware Prefetching in GPUs',
+    '      MGPUsim (Go) · next-line + strided prefetcher modules',
+    '      32% miss reduction · 80% prefetch hit · MSHR deadlock fix',
     '',
-    '  ↓ Scroll down for full interactive demos',
+    '  [2] Parallel Sparse Tensor Decomposition (TTMc)',
+    '      C++/OpenMP · CSF format · 7 algorithms across 3 modes',
+    '      O(n⁵)→O(n⁴) via intermediate buffering · 2.87x speedup',
     '',
-  ],
-  hire: () => [
+    '  [3] Append-Only Zip Library',
+    '      Rust/WASM · OPFS streaming · 80% memory reduction',
+    '      Large file processing without browser tab crashes',
     '',
-    '  ┌────────────────────────────────────────┐',
-    '  │  WHY WORK WITH ABHINAV                 │',
-    '  ├────────────────────────────────────────┤',
-    '  │  ✓ Systems-to-Web full-stack capability │',
-    '  │  ✓ Chromium & browser fork engineer    │',
-    '  │  ✓ DEF CON presenter & Forbes covered  │',
-    '  │  ✓ Top 1% JEE Advanced rank            │',
-    '  └────────────────────────────────────────┘',
+    '  ↓ Scroll down for interactive demos of [1] and [2]',
     '',
   ],
   neofetch: () => [
     '',
-    '  navknight@iit-tirupati',
-    '  ──────────────────────',
-    '  OS:          Linux / macOS',
-    '  Shell:       zsh + tmux',
-    '  Editor:      Neovim (lazy.nvim)',
-    '  GPU:         NVIDIA RTG / CUDA Compute',
-    '  Languages:   C++ > Rust > Go > TypeScript',
-    '  Academic:    B.Tech CS @ IIT Tirupati \'25',
+    '  navknight@workstation',
+    '  ─────────────────────',
+    '  OS:        Linux / macOS',
+    '  Shell:     zsh + tmux',
+    '  Editor:    Neovim',
+    '  Stack:     Go · C++ · Python · TypeScript',
+    '  Infra:     Docker · GCP · Kafka · Redis',
+    '  Research:  GPU memory systems · HPC',
     '',
   ],
-  'increase-speed': () => {
-    window.dispatchEvent(new Event('city-speed-boost'))
-    return [
-      '',
-      '  ⚡ Tuning building scheduler...',
-      '  ⚡ Spawning additional construction workers...',
-      '  ⚡ Cityscape parallax scroll rate increased to maximum.',
-      '',
-    ]
-  },
-  'sudo increase-performance': () => {
-    window.dispatchEvent(new Event('performance-boost'))
-    return [
-      '',
-      '  [sudo] password: ••••••••',
-      '',
-      '  ⚡ Enabling intermediate buffers...',
-      '  ⚡ Accelerating background cityscape engine threads...',
-      '  ⚡ Tuning L1/L2 cache prefetchers...',
-      '  ⚡ Boost complete! Background rendering at 4x speed.',
-      '',
-    ]
-  },
+  'increase-speed': 'ANIMATED',
+  'sudo increase-performance': 'ANIMATED',
 }
 
 export default function Hero() {
@@ -123,12 +101,89 @@ export default function Hero() {
     if (termRef.current) termRef.current.scrollTop = termRef.current.scrollHeight
   }, [lines, activeTab])
 
+  const [animating, setAnimating] = useState(false)
+
+  const runOverclockSequence = (cmdLine) => {
+    setAnimating(true)
+    const isSudo = cmdLine.includes('sudo')
+    const base = [...lines, `  ❯ ${cmdLine}`]
+
+    const sequence = isSudo ? [
+      { delay: 300, line: '  [sudo] password: ••••••••' },
+      { delay: 600, line: '' },
+      { delay: 100, line: '  ┌─────────────────────────────────────────────┐' },
+      { delay: 50, line:  '  │  PERFORMANCE BOOST v3.2.1 — KERNEL MODULE   │' },
+      { delay: 50, line:  '  └─────────────────────────────────────────────┘' },
+      { delay: 200, line: '' },
+      { delay: 150, line: '  [INIT] Loading overclock driver...' },
+      { delay: 200, line: '  [INIT] Hooking into scheduler... ✓' },
+      { delay: 150, line: '  [INIT] Patching memory controller... ✓' },
+      { delay: 100, line: '' },
+      { delay: 100, line: '  ⚡ Raising core voltage:  1.20V → 1.38V' },
+      { delay: 150, line: '  ⚡ Clock multiplier:      ×32 → ×48' },
+      { delay: 150, line: '  ⚡ L1 prefetch aggression: conservative → extreme' },
+      { delay: 150, line: '  ⚡ Memory timings:        CL16 → CL12 (risky)' },
+      { delay: 100, line: '' },
+      { delay: 100, line: '  ┌ STRESS TEST ──────────────────────────┐' },
+      { delay: 200, line: '  │ Core 0: ████████████████████████ 4.8GHz │' },
+      { delay: 100, line: '  │ Core 1: ███████████████████████░ 4.7GHz │' },
+      { delay: 100, line: '  │ Core 2: ████████████████████████ 4.8GHz │' },
+      { delay: 100, line: '  │ Core 3: ██████████████████████░░ 4.6GHz │' },
+      { delay: 100, line: '  │ Temp:   62°C → 74°C → 81°C → 89°C ⚠   │' },
+      { delay: 200, line: '  └────────────────────────────────────────┘' },
+      { delay: 200, line: '' },
+      { delay: 100, line: '  [WARN] Approaching thermal limit (95°C)' },
+      { delay: 300, line: '  [OK]   Throttle point: NOT reached. Stable.' },
+      { delay: 200, line: '' },
+      { delay: 100, line: '  ✓ All systems overclocked. +47% throughput.' },
+      { delay: 100, line: '  ✓ Background render threads: 4x speed.' },
+      { delay: 100, line: '  ✓ Prefetch accuracy: 80% → 94% (DAP engaged).' },
+      { delay: 200, line: '' },
+    ] : [
+      { delay: 200, line: '' },
+      { delay: 100, line: '  [SYS] Initiating speed boost...' },
+      { delay: 200, line: '  [GPU] Warp scheduler: round-robin → greedy' },
+      { delay: 200, line: '  [GPU] SM occupancy: 60% → 95%' },
+      { delay: 150, line: '  [MEM] Prefetch depth: 2 → 8 lines' },
+      { delay: 150, line: '  [MEM] Coalescing: enabled (128B transactions)' },
+      { delay: 100, line: '' },
+      { delay: 100, line: '  ┌ BENCHMARK ───────────────────────────┐' },
+      { delay: 150, line: '  │ Before: ████░░░░░░░░░░░░  1.2 TFLOPS │' },
+      { delay: 300, line: '  │ After:  █████████████████  4.1 TFLOPS │' },
+      { delay: 100, line: '  └────────────────────────────────────────┘' },
+      { delay: 200, line: '' },
+      { delay: 100, line: '  ⚡ 3.4× speedup achieved.' },
+      { delay: 150, line: '  ⚡ All warps saturated. Zero stalls.' },
+      { delay: 200, line: '' },
+    ]
+
+    window.dispatchEvent(new Event('city-speed-boost'))
+
+    let accumulated = [...base]
+    let totalDelay = 0
+    sequence.forEach(({ delay, line }) => {
+      totalDelay += delay
+      setTimeout(() => {
+        accumulated = [...accumulated, line]
+        setLines([...accumulated])
+      }, totalDelay)
+    })
+    setTimeout(() => setAnimating(false), totalDelay + 100)
+  }
+
   const handleCommand = (cmd) => {
     const trimmed = cmd.trim().toLowerCase()
+
+    if (trimmed === 'clear') { setLines(['']); setHistory(prev => [cmd, ...prev]); setHistIdx(-1); return }
+
+    if (COMMANDS[trimmed] === 'ANIMATED') {
+      runOverclockSequence(cmd)
+      setHistory(prev => [cmd, ...prev])
+      setHistIdx(-1)
+      return
+    }
+
     const newLines = [...lines, `  ❯ ${cmd}`]
-
-    if (trimmed === 'clear') { setLines(['']); return }
-
     const handler = COMMANDS[trimmed]
     if (handler) newLines.push(...handler())
     else if (trimmed) newLines.push('', `  command not found: ${trimmed}`, '')
@@ -139,6 +194,7 @@ export default function Hero() {
   }
 
   const handleKey = (e) => {
+    if (animating) { e.preventDefault(); return }
     if (e.key === 'Enter') { handleCommand(input); setInput('') }
     else if (e.key === 'ArrowUp') {
       e.preventDefault()
@@ -180,7 +236,7 @@ export default function Hero() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-emerald opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-accent-emerald"></span>
             </span>
-            <span className="font-mono text-[10px] uppercase tracking-wider text-accent-indigo font-bold">GPU & Systems Engineer</span>
+            <span className="font-mono text-[10px] uppercase tracking-wider text-accent-indigo font-bold">Software Engineer</span>
           </div>
 
           <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-4 animate-fade-up">
@@ -188,11 +244,11 @@ export default function Hero() {
           </h1>
           
           <p className="text-lg md:text-xl font-medium text-text-secondary mb-6 animate-fade-up" style={{ animationDelay: '100ms' }}>
-            Building high-performance computation kernels, GPU memory systems, and hardened browser runtimes.
+            Multi-tenant backends, custom browser forks, and GPU memory research.
           </p>
 
           <p className="text-sm text-text-muted leading-relaxed mb-8 max-w-lg animate-fade-up" style={{ animationDelay: '200ms' }}>
-            Software Engineer at <span className="text-text font-semibold">Zscaler</span>. Previously researched dead-block aware prefetching in GPUs, accelerated sparse tensor algorithms in C++, and built low-level browser forks.
+            Software Engineer at <span className="text-text font-semibold">Zscaler</span> (via SquareX). Previously built dead-block aware prefetchers in MGPUsim, parallelized sparse Tucker decomposition with OpenMP, and presented SWG bypasses at DEF CON 32.
           </p>
 
           <div className="flex flex-wrap gap-4 w-full animate-fade-up" style={{ animationDelay: '300ms' }}>
@@ -239,16 +295,16 @@ export default function Hero() {
                     <TerminalIcon size={12} />
                     terminal.sh
                   </button>
-                  <button 
+                  <button
                     onClick={() => setActiveTab('cuda')}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[11px] transition-all ${
-                      activeTab === 'cuda' 
-                        ? 'bg-white/5 text-accent-cyan font-bold border-b border-accent-cyan' 
+                      activeTab === 'cuda'
+                        ? 'bg-white/5 text-accent-cyan font-bold border-b border-accent-cyan'
                         : 'text-text-muted hover:text-text-secondary'
                     }`}
                   >
                     <FileCode size={12} />
-                    prefetch.cu
+                    prefetch.go
                   </button>
                   <button 
                     onClick={() => setActiveTab('json')}
@@ -311,26 +367,35 @@ export default function Hero() {
 
               {activeTab === 'cuda' && (
                 <div className="text-left select-text whitespace-pre overflow-x-auto text-[11px] sm:text-[12px]">
-                  <p className="text-text-muted">// GPU Stride-Detection Prefetcher Module</p>
-                  <p><span className="text-accent-purple">#include</span> <span className="text-accent-cyan">&lt;cuda_runtime.h&gt;</span></p>
-                  <p><span className="text-accent-purple">#include</span> <span className="text-accent-cyan">&lt;device_launch_parameters.h&gt;</span></p>
+                  <p className="text-text-muted">// MGPUsim Strided Prefetcher — prefetch.go</p>
+                  <p><span className="text-accent-purple">package</span> <span className="text-accent-cyan">prefetcher</span></p>
                   <p>&nbsp;</p>
-                  <p><span className="text-accent-purple">__global__ void</span> <span className="text-accent-indigo">stridePrefetchKernel</span>(<span className="text-accent-cyan">float</span>* d_out, <span className="text-accent-cyan">float</span>* d_in, <span className="text-accent-cyan">int</span> stride) &#123;</p>
-                  <p>    <span className="text-accent-cyan">int</span> idx = blockIdx.x * blockDim.x + threadIdx.x;</p>
-                  <p>    </p>
-                  <p>    <span className="text-text-muted">// Compute strided memory address access</span></p>
-                  <p>    <span className="text-accent-cyan">int</span> targetAddr = idx * stride;</p>
-                  <p>    </p>
-                  <p>    <span className="text-text-muted">// Dead-block aware prefetching logic</span></p>
-                  <p>    <span className="text-accent-purple">__shared__ float</span> cache_buffer[<span className="text-accent-amber">256</span>];</p>
-                  <p>    <span className="text-accent-purple">if</span> (threadIdx.x &lt; <span className="text-accent-amber">256</span>) &#123;</p>
-                  <p>        <span className="text-text-muted">// Prefetch ahead to hide memory latency</span></p>
-                  <p>        <span className="text-accent-cyan">int</span> prefetchAddr = targetAddr + (stride * <span className="text-accent-amber">16</span>);</p>
-                  <p>        cache_buffer[threadIdx.x] = d_in[prefetchAddr];</p>
+                  <p><span className="text-accent-purple">type</span> <span className="text-accent-indigo">StridedPrefetcher</span> <span className="text-accent-purple">struct</span> &#123;</p>
+                  <p>    strideTable  []<span className="text-accent-cyan">strideEntry</span></p>
+                  <p>    confidence   <span className="text-accent-cyan">int</span></p>
+                  <p>    threshold    <span className="text-accent-cyan">int</span></p>
+                  <p>&#125;</p>
+                  <p>&nbsp;</p>
+                  <p><span className="text-accent-purple">func</span> (p *<span className="text-accent-indigo">StridedPrefetcher</span>) <span className="text-accent-indigo">Lookup</span>(addr <span className="text-accent-cyan">uint64</span>) *<span className="text-accent-cyan">PrefetchReq</span> &#123;</p>
+                  <p>    entry := p.findEntry(addr)</p>
+                  <p>    <span className="text-accent-purple">if</span> entry == <span className="text-accent-purple">nil</span> &#123;</p>
+                  <p>        p.allocEntry(addr)</p>
+                  <p>        <span className="text-accent-purple">return nil</span></p>
                   <p>    &#125;</p>
-                  <p>    <span className="text-accent-indigo">__syncthreads</span>();</p>
-                  <p>    </p>
-                  <p>    d_out[idx] = d_in[targetAddr] * cache_buffer[threadIdx.x];</p>
+                  <p>&nbsp;</p>
+                  <p>    stride := addr - entry.lastAddr</p>
+                  <p>    <span className="text-accent-purple">if</span> stride == entry.stride &#123;</p>
+                  <p>        entry.confidence++</p>
+                  <p>    &#125; <span className="text-accent-purple">else</span> &#123;</p>
+                  <p>        entry.stride = stride</p>
+                  <p>        entry.confidence = <span className="text-accent-amber">1</span></p>
+                  <p>    &#125;</p>
+                  <p>    entry.lastAddr = addr</p>
+                  <p>&nbsp;</p>
+                  <p>    <span className="text-accent-purple">if</span> entry.confidence &gt;= p.threshold &#123;</p>
+                  <p>        <span className="text-accent-purple">return</span> &amp;<span className="text-accent-cyan">PrefetchReq</span>&#123;Addr: addr + stride&#125;</p>
+                  <p>    &#125;</p>
+                  <p>    <span className="text-accent-purple">return nil</span></p>
                   <p>&#125;</p>
                 </div>
               )}
@@ -339,21 +404,21 @@ export default function Hero() {
                 <div className="text-left select-text whitespace-pre overflow-x-auto text-[11px] sm:text-[12px] text-text-secondary">
                   <p>&#123;</p>
                   <p>  <span className="text-accent-cyan">"name"</span>: <span className="text-accent-emerald">"Abhinav Gupta"</span>,</p>
-                  <p>  <span className="text-accent-cyan">"role"</span>: <span className="text-accent-emerald">"Systems & GPU Engineer"</span>,</p>
-                  <p>  <span className="text-accent-cyan">"education"</span>: &#123;</p>
-                  <p>    <span className="text-accent-cyan">"degree"</span>: <span className="text-accent-emerald">"B.Tech in Computer Science"</span>,</p>
-                  <p>    <span className="text-accent-cyan">"institute"</span>: <span className="text-accent-emerald">"IIT Tirupati \'25"</span>,</p>
-                  <p>    <span className="text-accent-cyan">"gpa"</span>: <span className="text-accent-emerald">"8.69 / 10"</span></p>
-                  <p>  &#125;,</p>
-                  <p>  <span className="text-accent-cyan">"focus"</span>: [</p>
-                  <p>    <span className="text-accent-emerald">"GPU Architecture Simulators"</span>,</p>
-                  <p>    <span className="text-accent-emerald">"High-Performance Computing (HPC)"</span>,</p>
-                  <p>    <span className="text-accent-emerald">"Browser Hardening & Security"</span></p>
+                  <p>  <span className="text-accent-cyan">"role"</span>: <span className="text-accent-emerald">"Software Engineer"</span>,</p>
+                  <p>  <span className="text-accent-cyan">"org"</span>: <span className="text-accent-emerald">"Zscaler (via SquareX)"</span>,</p>
+                  <p>  <span className="text-accent-cyan">"education"</span>: <span className="text-accent-emerald">"B.Tech CS, IIT Tirupati '25"</span>,</p>
+                  <p>  <span className="text-accent-cyan">"domains"</span>: [</p>
+                  <p>    <span className="text-accent-emerald">"GPU Memory Systems (MGPUsim)"</span>,</p>
+                  <p>    <span className="text-accent-emerald">"Sparse Tensor HPC (OpenMP)"</span>,</p>
+                  <p>    <span className="text-accent-emerald">"Browser Forks (Chromium/Firefox)"</span>,</p>
+                  <p>    <span className="text-accent-emerald">"Enterprise Security (DLP/OIDC)"</span></p>
                   <p>  ],</p>
-                  <p>  <span className="text-accent-cyan">"interests"</span>: [</p>
-                  <p>    <span className="text-accent-emerald">"CUDA / OpenMP"</span>,</p>
-                  <p>    <span className="text-accent-emerald">"WebAssembly & OPFS Streaming"</span>,</p>
-                  <p>    <span className="text-accent-emerald">"Chromium & Firefox Source Hacking"</span></p>
+                  <p>  <span className="text-accent-cyan">"publications"</span>: [</p>
+                  <p>    <span className="text-accent-emerald">"DEF CON 32 — Last Mile Reassembly"</span></p>
+                  <p>  ],</p>
+                  <p>  <span className="text-accent-cyan">"stack"</span>: [</p>
+                  <p>    <span className="text-accent-emerald">"C/C++"</span>, <span className="text-accent-emerald">"Go"</span>, <span className="text-accent-emerald">"Python"</span>,</p>
+                  <p>    <span className="text-accent-emerald">"Rust"</span>, <span className="text-accent-emerald">"TypeScript"</span></p>
                   <p>  ]</p>
                   <p>&#125;</p>
                 </div>
@@ -365,7 +430,7 @@ export default function Hero() {
             <div className="bg-black/40 px-4 py-2 border-t border-white/5 shrink-0 flex items-center gap-1.5 text-text-muted font-mono text-[10px]">
               <Sparkles size={11} className="text-accent-indigo" />
               {activeTab === 'terminal' && <span>Tab to autocomplete commands · Up/Down for command history</span>}
-              {activeTab === 'cuda' && <span>Read-only CUDA prefetch kernel source code module</span>}
+              {activeTab === 'cuda' && <span>MGPUsim strided prefetcher — confidence-based stride detection (Go)</span>}
               {activeTab === 'json' && <span>Developer JSON profile schema metadata</span>}
             </div>
 

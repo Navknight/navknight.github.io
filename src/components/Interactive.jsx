@@ -5,9 +5,9 @@ import TTMcDemo from './demos/TTMcDemo'
 import PrefetchDemo from './demos/PrefetchDemo'
 
 const tabs = [
-  { id: 'zip', label: 'WASM Zip Creator', icon: FolderArchive, color: 'text-accent-indigo bg-accent-indigo/10 border-accent-indigo/35' },
-  { id: 'ttmc', label: 'Tensor Contraction Sim', icon: Activity, color: 'text-accent-emerald bg-accent-emerald/10 border-accent-emerald/35' },
-  { id: 'prefetch', label: 'GPU L1/L2 Prefetcher', icon: Cpu, color: 'text-accent-cyan bg-accent-cyan/10 border-accent-cyan/35' },
+  { id: 'zip', label: 'WASM Zip (Rust/OPFS)', icon: FolderArchive, color: 'text-accent-indigo bg-accent-indigo/10 border-accent-indigo/35' },
+  { id: 'ttmc', label: 'TTMc (OpenMP)', icon: Activity, color: 'text-accent-emerald bg-accent-emerald/10 border-accent-emerald/35' },
+  { id: 'prefetch', label: 'DAP (MGPUsim)', icon: Cpu, color: 'text-accent-cyan bg-accent-cyan/10 border-accent-cyan/35' },
 ]
 
 export default function Interactive() {
@@ -23,7 +23,7 @@ export default function Interactive() {
         <span className="flex-1 h-px bg-border" />
       </h2>
       <p className="text-text-secondary text-sm mb-10 max-w-xl">
-        Visualizing low-level system execution. Toggle the modules below to inspect parallel computation speeds, memory cycles, and streaming client-side file compression.
+        Interactive visualizations from my research. TTMc shows parallel sparse tensor decomposition (C++/OpenMP, BTP II). DAP simulates GPU cache prefetching as built in MGPUsim (Go, BTP I).
       </p>
 
       {/* Segmented Control Tabs */}

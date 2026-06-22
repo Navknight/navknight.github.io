@@ -11,9 +11,7 @@ import ParticleField from './components/ParticleField'
 export default function App() {
   const [loaded, setLoaded] = useState(false)
 
-  useEffect(() => {
-    setLoaded(true)
-  }, [])
+  useEffect(() => { setLoaded(true) }, [])
 
   return (
     <div className={`relative min-h-screen transition-opacity duration-1000 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
