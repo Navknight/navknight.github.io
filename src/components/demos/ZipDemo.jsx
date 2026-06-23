@@ -115,7 +115,12 @@ export default function ZipDemo() {
 
   const onDrop = (e) => {
     e.preventDefault()
-    const file = e.dataTransfer?.files[0] || e.target.files?.[0]
+    const file = e.dataTransfer?.files[0]
+    if (file) loadZip(file)
+  }
+
+  const onFileInput = (e) => {
+    const file = e.target.files?.[0]
     if (file) loadZip(file)
   }
 
@@ -212,8 +217,8 @@ export default function ZipDemo() {
           onDragOver={e => e.preventDefault()}
           className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border hover:border-accent-indigo/50 rounded-xl cursor-pointer transition-colors"
         >
-          <input type="file" accept=".zip,.docx,.xlsx,.pptx" className="hidden" onChange={onDrop} />
-          <span className="font-mono text-xs text-text-dim">drop a .zip / .docx / .xlsx / .pptx</span>
+          <input type="file" accept=".zip" className="hidden" onChange={onFileInput} />
+          <span className="font-mono text-xs text-text-dim">drop a .zip file here</span>
           <span className="font-mono text-[10px] text-text-muted mt-1">or click to browse</span>
         </label>
       )}
