@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Hero from './components/Hero'
 import Experience from './components/Experience'
@@ -7,10 +8,12 @@ import Skills from './components/Skills'
 import Interactive from './components/Interactive'
 import Footer from './components/Footer'
 import ParticleField from './components/ParticleField'
+import Blog from './components/Blog'
+import BlogList from './pages/BlogList'
+import BlogPost from './pages/BlogPost'
 
-export default function App() {
+function Portfolio() {
   const [loaded, setLoaded] = useState(false)
-
   useEffect(() => { setLoaded(true) }, [])
 
   return (
@@ -23,8 +26,21 @@ export default function App() {
         <Projects />
         <Skills />
         <Interactive />
+        <Blog />
       </main>
       <Footer />
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Portfolio />} />
+        <Route path="/blog" element={<BlogList />} />
+        <Route path="/blog/:slug" element={<BlogPost />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
