@@ -241,7 +241,7 @@ export default function ZipDemo() {
             </button>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Entry list */}
             <div>
               <p className="font-mono text-[10px] text-text-muted mb-2 uppercase tracking-wider">Entries</p>

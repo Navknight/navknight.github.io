@@ -48,7 +48,7 @@ const projects = [
     title: "browser.security",
     tagline: "DEF CON 2024 · 30+ SWG Bypasses · Forbes Coverage",
     description:
-      "Showcased the Last Mile Reassembly Attack illustrating how Secure Web Gateways fail at client-side data inspection. Highlighted in global cybersecurity press.",
+      "Last Mile Reassembly Attack illustrating how Secure Web Gateways fail at client-side data inspection. Highlighted in global cybersecurity press.",
     tech: ["Security Research", "Browser Internals", "SWG Bypasses"],
     link: "https://browser.security/",
   },

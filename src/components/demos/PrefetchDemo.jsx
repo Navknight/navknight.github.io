@@ -193,7 +193,7 @@ export default function PrefetchDemo() {
       </div>
 
       {/* Main visual: memory grids + cache */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
 
         {/* Matrix A — row access, stride 1 */}
         <div className="rounded-lg border border-zinc-800 bg-zinc-950/80 p-3">
@@ -285,7 +285,7 @@ export default function PrefetchDemo() {
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: 'Hits',        val: stats.hits,          color: 'text-emerald-400' },
           { label: 'Misses',      val: stats.misses,        color: 'text-red-400' },

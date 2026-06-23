@@ -595,17 +595,6 @@ export default function Hero() {
                   <p> ],</p>
                   <p>
                     {" "}
-                    <span className="text-accent-cyan">"publications"</span>: [
-                  </p>
-                  <p>
-                    {" "}
-                    <span className="text-accent-emerald">
-                      "DEF CON 32 — Last Mile Reassembly"
-                    </span>
-                  </p>
-                  <p> ],</p>
-                  <p>
-                    {" "}
                     <span className="text-accent-cyan">"stack"</span>: [
                   </p>
                   <p>
