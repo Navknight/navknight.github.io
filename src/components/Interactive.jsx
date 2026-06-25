@@ -1,76 +1,53 @@
-import { useState } from "react";
-import { FolderArchive, Activity, Cpu } from "lucide-react";
-import ZipDemo from "./demos/ZipDemo";
-import TTMcDemo from "./demos/TTMcDemo";
-import PrefetchDemo from "./demos/PrefetchDemo";
+import { useState } from 'react'
+import useInView from '../hooks/useInView'
+import Section from './ui/Section'
+import ZipDemo from './demos/ZipDemo'
+import TTMcDemo from './demos/TTMcDemo'
+import PrefetchDemo from './demos/PrefetchDemo'
 
-const tabs = [
-  {
-    id: "zip",
-    label: "WASM Zip (Rust/OPFS)",
-    icon: FolderArchive,
-    color: "text-accent-indigo bg-accent-indigo/10 border-accent-indigo/35",
-  },
-  {
-    id: "ttmc",
-    label: "TTMc (OpenMP)",
-    icon: Activity,
-    color: "text-accent-emerald bg-accent-emerald/10 border-accent-emerald/35",
-  },
-  {
-    id: "prefetch",
-    label: "DAP (MGPUsim)",
-    icon: Cpu,
-    color: "text-accent-cyan bg-accent-cyan/10 border-accent-cyan/35",
-  },
-];
+const TABS = [
+  { id: 'zip', label: 'WASM Zip' },
+  { id: 'ttmc', label: 'TTMc' },
+  { id: 'prefetch', label: 'DAP Prefetch' },
+]
 
 export default function Interactive() {
-  const [active, setActive] = useState("zip");
+  const [active, setActive] = useState('zip')
+  const { ref, visible } = useInView(0.05)
 
   return (
-    <section id="interactive" className="section-container relative">
-      {/* Background glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent-indigo/5 rounded-full blur-[160px] pointer-events-none" />
+    <Section id="interactive">
+      <div ref={ref} className={`transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+        <h2 className="font-sans text-2xl font-bold text-text mb-2">Interactive Demos</h2>
+        <p className="text-xs text-text-secondary mb-8 max-w-lg">
+          Live visualizations from research. TTMc: parallel sparse tensor decomposition (C++/OpenMP).
+          DAP: GPU cache prefetching as built in MGPUsim (Go).
+        </p>
 
-      <h2 className="font-mono text-xl font-bold text-accent-indigo mb-3 flex items-center gap-3">
-        <span className="text-text-muted text-sm">04.</span> Interactive Demos
-        <span className="flex-1 h-px bg-border" />
-      </h2>
-      <p className="text-text-secondary text-sm mb-10 max-w-xl">
-        Interactive visualizations from my research. TTMc shows parallel sparse
-        tensor decomposition (C++/OpenMP, BTP II). DAP simulates GPU cache
-        prefetching as built in MGPUsim (Go, BTP I).
-      </p>
-
-      {/* Segmented Control Tabs */}
-      <div className="flex flex-wrap gap-2 mb-8 p-1 bg-white/5 border border-white/5 rounded-2xl w-fit">
-        {tabs.map((t) => {
-          const Icon = t.icon;
-          const isActive = active === t.id;
-          return (
+        {/* Tabs */}
+        <div className="flex gap-1 mb-6 border-b border-border">
+          {TABS.map(t => (
             <button
               key={t.id}
               onClick={() => setActive(t.id)}
-              className={`flex items-center gap-2 px-5 py-2.5 font-mono text-xs rounded-xl transition-all duration-300 ${
-                isActive
-                  ? `${t.color} font-bold shadow-md shadow-black/10`
-                  : "text-text-secondary hover:text-text border border-transparent hover:bg-white/5"
+              className={`relative text-xs px-4 py-2.5 transition-all duration-200 -mb-px ${
+                active === t.id
+                  ? 'text-text border-b-2 border-current font-medium'
+                  : 'text-text-muted hover:text-text-secondary border-b-2 border-transparent'
               }`}
             >
-              <Icon size={14} className={isActive ? "" : "text-text-muted"} />
               {t.label}
             </button>
-          );
-        })}
-      </div>
+          ))}
+        </div>
 
-      {/* Main Demo Dashboard Container */}
-      <div className="glass rounded-2xl p-6 md:p-8 min-h-[500px] flex flex-col justify-between">
-        {active === "zip" && <ZipDemo />}
-        {active === "ttmc" && <TTMcDemo />}
-        {active === "prefetch" && <PrefetchDemo />}
+        {/* Demo panel — translucent, fixed height */}
+        <div className="panel-translucent rounded-lg p-4 sm:p-6 md:p-8 h-[400px] sm:h-[500px] overflow-y-auto shadow-2xl shadow-black/30">
+          {active === 'zip' && <ZipDemo />}
+          {active === 'ttmc' && <TTMcDemo />}
+          {active === 'prefetch' && <PrefetchDemo />}
+        </div>
       </div>
-    </section>
-  );
+    </Section>
+  )
 }

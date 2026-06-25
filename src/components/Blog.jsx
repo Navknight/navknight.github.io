@@ -1,97 +1,63 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowUpRight, ImageOff } from 'lucide-react'
 import { posts } from '../data/posts'
+import Section from './ui/Section'
+import AnimatedItem from './ui/AnimatedItem'
 
-function PostCard({ post, index }) {
-  const ref = useRef(null)
-  const [visible, setVisible] = useState(false)
-
-  useEffect(() => {
-    const obs = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setVisible(true) },
-      { threshold: 0.05 }
-    )
-    if (ref.current) obs.observe(ref.current)
-    return () => obs.disconnect()
-  }, [])
-
+function PostItem({ post, index }) {
   return (
-    <Link
-      ref={ref}
-      to={`/blog/${post.slug}`}
-      className={`group glass rounded-2xl overflow-hidden flex flex-col border border-white/5 hover:border-accent-indigo/35 shadow-xl hover:shadow-accent-indigo/5 transition-all duration-500 ${
-        visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-      }`}
-      style={{ transitionDelay: `${index * 80}ms` }}
+    <AnimatedItem index={index} as={Link} to={`/blog/${post.slug}`}
+      className="group flex gap-4 py-4 border-b border-border/50 last:border-b-0 hover:pl-1"
     >
-      {/* Hero image */}
-      <div className="h-40 bg-surface-2 overflow-hidden relative">
-        {post.image ? (
+      {post.image && (
+        <div className="w-16 h-12 rounded overflow-hidden shrink-0 bg-surface-2">
           <img
             src={post.image}
             alt={post.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
           />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-accent-indigo/10 to-accent-purple/5">
-            <ImageOff size={24} className="text-text-muted opacity-40" />
+        </div>
+      )}
+      <div className="flex-1 min-w-0 flex flex-col justify-center">
+        <div className="flex items-baseline justify-between gap-3">
+          <span className="text-xs text-text-secondary group-hover:text-accent transition-colors duration-300 truncate">
+            {post.title}
+          </span>
+          <time className="text-[10px] text-text-muted shrink-0">
+            {new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })}
+          </time>
+        </div>
+        {post.tags.length > 0 && (
+          <div className="flex gap-2 mt-1">
+            {post.tags.slice(0, 3).map(t => (
+              <span key={t} className="text-[10px] text-accent-green">#{t}</span>
+            ))}
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        <div className="absolute bottom-3 left-4 flex flex-wrap gap-1.5">
-          {post.tags.map(t => (
-            <span key={t} className="px-2 py-0.5 text-[10px] font-mono text-white/80 bg-black/40 backdrop-blur-sm rounded-lg border border-white/10">
-              {t}
-            </span>
-          ))}
-        </div>
       </div>
-
-      {/* Content */}
-      <div className="p-5 flex flex-col gap-2 flex-1">
-        <div className="flex items-start justify-between gap-3">
-          <h3 className="font-bold text-sm text-text group-hover:text-accent-indigo transition-colors duration-300 leading-snug">
-            {post.title}
-          </h3>
-          <ArrowUpRight size={14} className="text-text-muted group-hover:text-accent-indigo shrink-0 mt-0.5 transition-colors" />
-        </div>
-        <p className="text-xs text-text-secondary leading-relaxed line-clamp-2">{post.description}</p>
-        <time className="font-mono text-[10px] text-text-muted mt-auto pt-1">
-          {new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
-        </time>
-      </div>
-    </Link>
+    </AnimatedItem>
   )
 }
 
 export default function Blog() {
-  const latest = posts.slice(0, 3)
+  const latest = posts.slice(0, 5)
 
   return (
-    <section id="blog" className="section-container relative">
-      <div className="absolute top-1/2 left-1/4 w-[350px] h-[350px] bg-accent-purple/5 rounded-full blur-[120px] pointer-events-none" />
-
-      <div className="flex items-center justify-between mb-12">
-        <h2 className="font-mono text-xl font-bold text-accent-indigo flex items-center gap-3">
-          <span className="text-text-muted text-sm">05.</span> Blog
-          <span className="w-24 h-px bg-border" />
-        </h2>
-        <Link
-          to="/blog"
-          className="flex items-center gap-1 font-mono text-xs text-text-muted hover:text-accent-indigo transition-colors"
-        >
-          All posts <ArrowUpRight size={12} />
+    <Section id="blog">
+      <div className="flex items-baseline justify-between mb-8">
+        <h2 className="font-sans text-2xl font-bold text-text">Writing</h2>
+        <Link to="/blog" className="text-[11px] text-text-muted hover:text-accent link-animated transition-colors">
+          all posts →
         </Link>
       </div>
 
       {latest.length === 0 ? (
-        <p className="font-mono text-text-muted text-sm">No posts yet.</p>
+        <p className="text-xs text-text-muted">No posts yet.</p>
       ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {latest.map((post, i) => <PostCard key={post.slug} post={post} index={i} />)}
+        <div>
+          {latest.map((post, i) => <PostItem key={post.slug} post={post} index={i} />)}
         </div>
       )}
-    </section>
+    </Section>
   )
 }
