@@ -1,17 +1,32 @@
-import { useState } from 'react'
-import { FolderArchive, Activity, Cpu } from 'lucide-react'
-import ZipDemo from './demos/ZipDemo'
-import TTMcDemo from './demos/TTMcDemo'
-import PrefetchDemo from './demos/PrefetchDemo'
+import { useState } from "react";
+import { FolderArchive, Activity, Cpu } from "lucide-react";
+import ZipDemo from "./demos/ZipDemo";
+import TTMcDemo from "./demos/TTMcDemo";
+import PrefetchDemo from "./demos/PrefetchDemo";
 
 const tabs = [
-  { id: 'zip', label: 'WASM Zip (Rust/OPFS)', icon: FolderArchive, color: 'text-accent-indigo bg-accent-indigo/10 border-accent-indigo/35' },
-  { id: 'ttmc', label: 'TTMc (OpenMP)', icon: Activity, color: 'text-accent-emerald bg-accent-emerald/10 border-accent-emerald/35' },
-  { id: 'prefetch', label: 'DAP (MGPUsim)', icon: Cpu, color: 'text-accent-cyan bg-accent-cyan/10 border-accent-cyan/35' },
-]
+  {
+    id: "zip",
+    label: "WASM Zip (Rust/OPFS)",
+    icon: FolderArchive,
+    color: "text-accent-indigo bg-accent-indigo/10 border-accent-indigo/35",
+  },
+  {
+    id: "ttmc",
+    label: "TTMc (OpenMP)",
+    icon: Activity,
+    color: "text-accent-emerald bg-accent-emerald/10 border-accent-emerald/35",
+  },
+  {
+    id: "prefetch",
+    label: "DAP (MGPUsim)",
+    icon: Cpu,
+    color: "text-accent-cyan bg-accent-cyan/10 border-accent-cyan/35",
+  },
+];
 
 export default function Interactive() {
-  const [active, setActive] = useState('zip')
+  const [active, setActive] = useState("zip");
 
   return (
     <section id="interactive" className="section-container relative">
@@ -23,14 +38,16 @@ export default function Interactive() {
         <span className="flex-1 h-px bg-border" />
       </h2>
       <p className="text-text-secondary text-sm mb-10 max-w-xl">
-        Interactive visualizations from my research. TTMc shows parallel sparse tensor decomposition (C++/OpenMP, BTP II). DAP simulates GPU cache prefetching as built in MGPUsim (Go, BTP I).
+        Interactive visualizations from my research. TTMc shows parallel sparse
+        tensor decomposition (C++/OpenMP, BTP II). DAP simulates GPU cache
+        prefetching as built in MGPUsim (Go, BTP I).
       </p>
 
       {/* Segmented Control Tabs */}
       <div className="flex flex-wrap gap-2 mb-8 p-1 bg-white/5 border border-white/5 rounded-2xl w-fit">
-        {tabs.map(t => {
-          const Icon = t.icon
-          const isActive = active === t.id
+        {tabs.map((t) => {
+          const Icon = t.icon;
+          const isActive = active === t.id;
           return (
             <button
               key={t.id}
@@ -38,22 +55,22 @@ export default function Interactive() {
               className={`flex items-center gap-2 px-5 py-2.5 font-mono text-xs rounded-xl transition-all duration-300 ${
                 isActive
                   ? `${t.color} font-bold shadow-md shadow-black/10`
-                  : 'text-text-secondary hover:text-text border border-transparent hover:bg-white/5'
+                  : "text-text-secondary hover:text-text border border-transparent hover:bg-white/5"
               }`}
             >
-              <Icon size={14} className={isActive ? '' : 'text-text-muted'} />
+              <Icon size={14} className={isActive ? "" : "text-text-muted"} />
               {t.label}
             </button>
-          )
+          );
         })}
       </div>
 
       {/* Main Demo Dashboard Container */}
       <div className="glass rounded-2xl p-6 md:p-8 min-h-[500px] flex flex-col justify-between">
-        {active === 'zip' && <ZipDemo />}
-        {active === 'ttmc' && <TTMcDemo />}
-        {active === 'prefetch' && <PrefetchDemo />}
+        {active === "zip" && <ZipDemo />}
+        {active === "ttmc" && <TTMcDemo />}
+        {active === "prefetch" && <PrefetchDemo />}
       </div>
     </section>
-  )
+  );
 }

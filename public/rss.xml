@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>navknight — Blog</title>
+    <link>https://navknight.github.io/blog</link>
+    <description>Notes on systems, GPU architecture, browser internals, and security research.</description>
+    <language>en-us</language>
+    <atom:link href="https://navknight.github.io/rss.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 23 Jun 2026 04:45:19 GMT</lastBuildDate>
+  <item>
+    <title>Hello, Blog</title>
+    <link>https://navknight.github.io/blog/hello-world</link>
+    <guid>https://navknight.github.io/blog/hello-world</guid>
+    <pubDate>Tue, 23 Jun 2026 00:00:00 GMT</pubDate>
+    <description>First post. Why I added a blog to my portfolio.</description>
+    <content:encoded><![CDATA[<p>Hello World,
+Motivated by the fast paced changes that the tech world is witnessing right now, I have decided to start my own blog. I do not know right now what I will be posting here, but it will be along the lines of tech, the things that I am learning right now and some of my personal opinions about random things, and more (If I get to do more, then why not)
+Let&#39;s have fun together.</p>
+]]></content:encoded>
+  </item>
+  </channel>
+</rss>

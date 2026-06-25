@@ -1,459 +1,369 @@
-import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 
-export default function TTMcDemo() {
-  const [algo, setAlgo] = useState('naive')
-  const [threads, setThreads] = useState(2)
-  const [tick, setTick] = useState(0)
-  const [playing, setPlaying] = useState(false)
-  const animRef = useRef(null)
+// Sparse tensor X: entries as [i, j, k, value]
+// 3 modes: i (rows), j (cols), k (depth)
+const I = 3, J = 3, K = 3, R = 2
+const TENSOR = [
+  [0,1,0,2],[0,1,1,3],[0,1,2,1],
+  [1,0,0,4],[1,0,2,5],[1,2,0,3],
+  [2,0,1,1],[2,1,0,2],[2,2,1,2],
+]
+const MAT_B = [[1,2],[3,1],[2,4]]  // J×R
+const MAT_C = [[2,1],[1,3],[3,2]]  // K×R
 
-  const R = 2
+// Group nonzeros by fiber (i,k) — the "tube" shared by multiple j
+function getFibers(tensor) {
+  const map = {}
+  tensor.forEach(([i,j,k,v]) => {
+    const key = `${i},${k}`
+    if (!map[key]) map[key] = { i, k, entries: [] }
+    map[key].entries.push({ j, v })
+  })
+  return Object.values(map).sort((a, b) => a.i !== b.i ? a.i - b.i : a.k - b.k)
+}
 
-  const [tensor, setTensor] = useState([
-    [0,0,0,2],[0,1,1,3],[0,2,0,1],
-    [1,0,1,4],[1,1,0,2],[1,2,1,5],
-    [2,0,0,3],[2,1,0,1],[2,2,1,2],
-  ])
-  const [matB, setMatB] = useState([[1,2],[3,1],[2,4]])
-  const [matC, setMatC] = useState([[2,1],[1,3]])
-
-  const threadColors = ['#6366f1','#06b6d4','#10b981','#f59e0b']
-  const threadBgs = ['rgba(99,102,241,0.1)','rgba(6,182,212,0.1)','rgba(16,185,129,0.1)','rgba(245,158,11,0.1)']
-
-  // Derive dimensions from data
-  const I = useMemo(() => Math.max(...tensor.map(([i])=>i)) + 1, [tensor])
-  const J = useMemo(() => Math.max(...tensor.map(([,j])=>j)) + 1, [tensor])
-  const K = useMemo(() => Math.max(...tensor.map(([,,k])=>k)) + 1, [tensor])
-
-  // Grow matrices when dimensions increase
-  useEffect(() => {
-    if (matB.length < J) setMatB(prev => [...prev, ...Array.from({ length: J - prev.length }, () => [1, 1])])
-  }, [J])
-  useEffect(() => {
-    if (matC.length < K) setMatC(prev => [...prev, ...Array.from({ length: K - prev.length }, () => [1, 1])])
-  }, [K])
-
-  const fibers = useMemo(() => {
-    const map = {}
-    tensor.forEach(([i,j,k,v]) => {
-      const key = `${i},${k}`
-      if (!map[key]) map[key] = { i, k, entries: [] }
-      map[key].entries.push({ j, v })
-    })
-    return Object.values(map)
-  }, [tensor])
-
-  const addNonzero = () => {
-    // Add entry at next available slot
-    const newI = I - 1
-    const newJ = Math.floor(Math.random() * J)
-    const newK = Math.floor(Math.random() * K)
-    // Avoid duplicate coordinates
-    const exists = tensor.some(([i,j,k]) => i===newI && j===newJ && k===newK)
-    if (exists) {
-      setTensor([...tensor, [I, 0, 0, 1]])
-    } else {
-      setTensor([...tensor, [newI, newJ, newK, 1]])
+function buildSteps(algo, fibers) {
+  const steps = []
+  fibers.forEach(({ i, k, entries }) => {
+    if (algo === 'buffered') {
+      steps.push({ type: 'cache', i, k, label: `Load C[${k},:] into buffer`, cMemReads: R })
     }
-  }
-
-  const removeNonzero = (idx) => {
-    if (tensor.length <= 1) return
-    setTensor(tensor.filter((_, i) => i !== idx))
-  }
-
-  // Build per-thread step queues (parallel execution) — round-robin assignment
-  const threadQueues = useMemo(() => {
-    const queues = Array.from({ length: threads }, () => [])
-
-    fibers.forEach((fiber, fIdx) => {
-      const t = fIdx % threads
-
-      if (algo === 'naive') {
-        fiber.entries.forEach(({ j, v }) => {
-          if (!matB[j] || !matC[fiber.k]) return
-          for (let r2 = 0; r2 < R; r2++) {
-            for (let r3 = 0; r3 < R; r3++) {
-              const bVal = matB[j][r2], cVal = matC[fiber.k][r3]
-              queues[t].push({
-                type: 'compute', i: fiber.i, j, k: fiber.k, r2, r3,
-                xVal: v, bVal, cVal, product: v * bVal * cVal,
-                label: `X(${fiber.i},${j},${fiber.k})×B(${j},${r2})×C(${fiber.k},${r3})`,
-                math: `${v}×${bVal}×${cVal} = ${v*bVal*cVal}`,
-                redundant: true,
-              })
-            }
-          }
-        })
-      } else {
-        if (!matC[fiber.k]) return
-        const cached = []
+    entries.forEach(({ j, v }) => {
+      for (let r2 = 0; r2 < R; r2++) {
         for (let r3 = 0; r3 < R; r3++) {
-          const cVal = matC[fiber.k][r3]
-          cached.push(cVal)
-          queues[t].push({
-            type: 'buffer', i: fiber.i, k: fiber.k, r3, cVal,
-            label: `Cache C(${fiber.k},${r3})`,
-            math: `buf[${r3}] ← ${cVal}`,
+          steps.push({
+            type: 'compute', i, j, k, r2, r3, v,
+            label: algo === 'naive'
+              ? `X(${i},${j},${k})×B[${j},${r2}]×C[${k},${r3}] → Y[${i},${r2},${r3}]`
+              : `X(${i},${j},${k})×B[${j},${r2}]×buf[${r3}] → Y[${i},${r2},${r3}]`,
+            product: v * (MAT_B[j]?.[r2] ?? 0) * (MAT_C[k]?.[r3] ?? 0),
+            cMemReads: algo === 'naive' ? 1 : 0,
           })
         }
-        fiber.entries.forEach(({ j, v }) => {
-          if (!matB[j]) return
-          for (let r2 = 0; r2 < R; r2++) {
-            for (let r3 = 0; r3 < R; r3++) {
-              const bVal = matB[j][r2]
-              queues[t].push({
-                type: 'multiply', i: fiber.i, j, k: fiber.k, r2, r3,
-                xVal: v, bVal, cVal: cached[r3], product: v * bVal * cached[r3],
-                label: `X(${fiber.i},${j},${fiber.k})×B(${j},${r2})×buf[${r3}]`,
-                math: `${v}×${bVal}×${cached[r3]} = ${v*bVal*cached[r3]}`,
-                usesBuffer: true,
-              })
-            }
-          }
-        })
       }
     })
-    return queues
-  }, [algo, threads, tensor, matB, matC, fibers])
+  })
+  return steps
+}
 
-  const maxQueueLen = useMemo(() => Math.max(0, ...threadQueues.map(q => q.length)), [threadQueues])
+export default function TTMcDemo() {
+  const [algo, setAlgo]       = useState('naive')
+  const [tick, setTick]       = useState(0)
+  const [playing, setPlaying] = useState(false)
+  const [numThreads, setNumThreads] = useState(2)
+  const [showCtx, setShowCtx] = useState(false)
+  const intervalRef = useRef(null)
 
-  // Output computation
-  const outputY = useMemo(() => {
-    const Y = Array.from({ length: I }, () => Array.from({ length: R }, () => Array(R).fill(0)))
-    tensor.forEach(([i,j,k,v]) => {
-      if (!matB[j] || !matC[k]) return
-      for (let r2 = 0; r2 < R; r2++)
-        for (let r3 = 0; r3 < R; r3++)
-          Y[i][r2][r3] += v * matB[j][r2] * matC[k][r3]
+  const fibers     = useMemo(() => getFibers(TENSOR), [])
+  const naiveSteps = useMemo(() => buildSteps('naive',    fibers), [fibers])
+  const bufSteps   = useMemo(() => buildSteps('buffered', fibers), [fibers])
+  const steps      = algo === 'naive' ? naiveSteps : bufSteps
+  const totalTicks = steps.length
+  const currentStep = tick > 0 ? steps[tick - 1] : null
+
+  const { cReadsTotal, yOutput } = useMemo(() => {
+    let c = 0
+    const y = Array.from({ length: I }, () =>
+      Array.from({ length: R }, () => Array(R).fill(0))
+    )
+    steps.slice(0, tick).forEach(s => {
+      c += s.cMemReads
+      if (s.type === 'compute') y[s.i][s.r2][s.r3] += s.product
     })
-    return Y
-  }, [tensor, matB, matC, I])
+    return { cReadsTotal: c, yOutput: y }
+  }, [steps, tick])
 
-  const partialY = useMemo(() => {
-    const Y = Array.from({ length: I }, () => Array.from({ length: R }, () => Array(R).fill(0)))
-    threadQueues.forEach(queue => {
-      queue.slice(0, tick).forEach(s => {
-        if (s.product !== undefined) Y[s.i][s.r2][s.r3] += s.product
-      })
-    })
-    return Y
-  }, [threadQueues, tick, I])
+  const naiveCReads = useMemo(() => naiveSteps.reduce((a, s) => a + s.cMemReads, 0), [naiveSteps])
+  const bufCReads   = useMemo(() => bufSteps.reduce((a, s) => a + s.cMemReads, 0), [bufSteps])
+  const cSaved      = naiveCReads - bufCReads
 
-  useEffect(() => { setTick(0); setPlaying(false) }, [algo, threads, tensor, matB, matC])
+  const activeFiberKey = currentStep ? `${currentStep.i},${currentStep.k}` : null
+  const buffer = (algo === 'buffered' && currentStep?.k !== undefined) ? MAT_C[currentStep.k] : null
 
+  const naiveWall = Math.ceil(naiveSteps.filter(s => s.type === 'compute').length / numThreads)
+  const bufWall   = Math.ceil(bufSteps.filter(s => s.type === 'compute').length / numThreads)
+  const speedup   = naiveWall > 0 ? (naiveWall / bufWall).toFixed(2) : '—'
+
+  useEffect(() => { setTick(0); setPlaying(false) }, [algo, numThreads])
   useEffect(() => {
-    if (!playing) return
-    animRef.current = setInterval(() => {
-      setTick(prev => {
-        if (prev >= maxQueueLen) { setPlaying(false); return prev }
-        return prev + 1
-      })
-    }, 500)
-    return () => clearInterval(animRef.current)
-  }, [playing, maxQueueLen])
-
-  const updateTensor = (idx, val) => {
-    const next = tensor.map(r => [...r])
-    next[idx][3] = Number(val) || 0
-    setTensor(next)
-  }
-  const updateB = (j, r, val) => { const n = matB.map(r=>[...r]); n[j][r] = Number(val)||0; setMatB(n) }
-  const updateC = (k, r, val) => { const n = matC.map(r=>[...r]); n[k][r] = Number(val)||0; setMatC(n) }
-
-  const wallClockNaive = useMemo(() => {
-    const q = Array.from({ length: threads }, () => [])
-    fibers.forEach((fiber, fIdx) => {
-      const t = fIdx % threads
-      fiber.entries.forEach(() => { for (let r2=0;r2<R;r2++) for(let r3=0;r3<R;r3++) q[t].push(1) })
-    })
-    return Math.max(...q.map(x=>x.length))
-  }, [fibers, threads])
-
-  const wallClockBuffered = useMemo(() => {
-    const q = Array.from({ length: threads }, () => [])
-    fibers.forEach((fiber, fIdx) => {
-      const t = fIdx % threads
-      for(let r3=0;r3<R;r3++) q[t].push(1)
-      fiber.entries.forEach(() => { for(let r2=0;r2<R;r2++) for(let r3=0;r3<R;r3++) q[t].push(1) })
-    })
-    return Math.max(...q.map(x=>x.length))
-  }, [fibers, threads])
+    if (!playing) { clearInterval(intervalRef.current); return }
+    intervalRef.current = setInterval(() => {
+      setTick(p => { if (p >= totalTicks) { setPlaying(false); return p } return p + 1 })
+    }, 200)
+    return () => clearInterval(intervalRef.current)
+  }, [playing, totalTicks])
 
   return (
     <div className="space-y-5">
+
       {/* Header */}
       <div>
-        <h3 className="font-mono text-lg text-emerald-400 font-bold mb-1">
-          TTMc: Tensor-Times-Matrix Chain (Mode-1)
-        </h3>
-        <p className="text-zinc-400 text-sm leading-relaxed">
-          <span className="text-zinc-200 font-medium">Y(i, r₂, r₃) = Σⱼ Σₖ X(i,j,k) · B(j,r₂) · C(k,r₃)</span>
-          <br />
-          Core kernel of Tucker decomposition on sparse tensors stored in CSF (Compressed Sparse Fiber) format.
-          Fibers group nonzeros sharing (i,k) — parallelized via OpenMP with round-robin assignment.
-          Buffered variant caches C(k,:) per fiber, reducing complexity from O(nnz·R²) to O(fibers·R + nnz·R²) by eliminating redundant reads.
+        <h3 className="font-mono text-lg text-emerald-400 font-bold">TTMc: Tucker Tensor × Matrix Chain</h3>
+        <p className="text-zinc-400 text-xs mt-1 leading-relaxed">
+          Computes Y(i,r₂,r₃) = Σ<sub>j,k</sub> X(i,j,k)·B(j,r₂)·C(k,r₃) — contracting a 3D sparse tensor along two modes.{' '}
+          Nonzeros sharing (i,k) form a <em>fiber</em>. Naively, C[k,:] is re-read from memory for every nonzero in the fiber.{' '}
+          <span className="text-cyan-400">Buffered mode</span> loads it once per fiber into registers — no redundant memory reads.
         </p>
       </div>
 
       {/* Controls */}
-      <div className="flex flex-wrap items-center gap-2 p-3 rounded-lg border border-zinc-800 bg-zinc-900/80">
-        <button
-          onClick={() => setAlgo('naive')}
-          className={`px-3 py-1.5 font-mono text-xs rounded-md font-medium transition-all ${
-            algo === 'naive'
-              ? 'bg-red-500/20 text-red-300 border border-red-500/50 shadow-lg shadow-red-500/10'
-              : 'border border-zinc-700 text-zinc-400 hover:text-zinc-200'
-          }`}
-        >
-          ✗ Naive
-        </button>
-        <button
-          onClick={() => setAlgo('buffered')}
-          className={`px-3 py-1.5 font-mono text-xs rounded-md font-medium transition-all ${
-            algo === 'buffered'
-              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 shadow-lg shadow-emerald-500/10'
-              : 'border border-zinc-700 text-zinc-400 hover:text-zinc-200'
-          }`}
-        >
-          ✓ Buffered
-        </button>
-        <select
-          value={threads}
-          onChange={e => setThreads(Number(e.target.value))}
-          className="px-3 py-1.5 font-mono text-xs rounded-md border border-zinc-700 text-zinc-300 bg-zinc-800"
-        >
+      <div className="flex flex-wrap items-center gap-2 p-3 rounded-lg border border-zinc-800 bg-zinc-900/60">
+        {[
+          { key: 'naive',    label: '✗ Naive',    cls: 'bg-red-500/15 text-red-300 border-red-500/40' },
+          { key: 'buffered', label: '✓ Buffered', cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40' },
+        ].map(m => (
+          <button key={m.key} onClick={() => setAlgo(m.key)}
+            className={`px-3 py-1.5 font-mono text-xs rounded border font-medium transition-all ${
+              algo === m.key ? m.cls : 'border-zinc-700 text-zinc-400 hover:text-zinc-200'
+            }`}>{m.label}</button>
+        ))}
+        <select value={numThreads} onChange={e => setNumThreads(+e.target.value)}
+          className="px-3 py-1.5 font-mono text-xs rounded border border-zinc-700 text-zinc-300 bg-zinc-800">
           {[1,2,4].map(t => <option key={t} value={t}>{t} thread{t>1?'s':''}</option>)}
         </select>
-
-        <div className="ml-auto flex items-center gap-1.5">
+        <div className="ml-auto flex items-center gap-1">
           <button onClick={() => setTick(t => Math.max(0, t-1))} disabled={tick===0}
             className="w-7 h-7 flex items-center justify-center rounded border border-zinc-700 text-zinc-400 hover:text-white disabled:opacity-30 text-sm">◀</button>
-          <button onClick={() => setPlaying(!playing)}
-            className={`px-3 h-7 font-mono text-xs rounded border font-medium transition-all ${
+          <button onClick={() => setPlaying(p => !p)}
+            className={`px-3 h-7 font-mono text-xs rounded border font-medium ${
               playing ? 'border-amber-500/50 text-amber-300 bg-amber-500/10' : 'border-zinc-600 text-zinc-300 hover:border-zinc-400'
-            }`}
-          >{playing ? '⏸' : '▶'}</button>
-          <button onClick={() => setTick(t => Math.min(maxQueueLen, t+1))} disabled={tick>=maxQueueLen}
+            }`}>{playing ? '⏸' : '▶'}</button>
+          <button onClick={() => setTick(t => Math.min(totalTicks, t+1))} disabled={tick>=totalTicks}
             className="w-7 h-7 flex items-center justify-center rounded border border-zinc-700 text-zinc-400 hover:text-white disabled:opacity-30 text-sm">▶</button>
           <button onClick={() => { setTick(0); setPlaying(false) }}
             className="w-7 h-7 flex items-center justify-center rounded border border-zinc-700 text-zinc-400 hover:text-white text-sm">↺</button>
         </div>
+        <span className="font-mono text-[10px] text-zinc-500">step {tick}/{totalTicks}</span>
       </div>
 
-      {/* Parallel Thread Lanes — the main visualization */}
-      <div className="rounded-lg border border-zinc-800 bg-zinc-950/80 overflow-hidden">
-        <div className="px-4 py-2 border-b border-zinc-800 bg-zinc-900/50">
-          <span className="font-mono text-xs text-zinc-400 font-bold">PARALLEL EXECUTION — TICK {tick}/{maxQueueLen}</span>
-        </div>
-
-        <div className="p-4 space-y-3">
-          {threadQueues.map((queue, t) => {
-            const current = queue[tick - 1]
-            const done = queue.slice(0, tick)
-            const progress = queue.length > 0 ? (Math.min(tick, queue.length) / queue.length) * 100 : 100
-            const isIdle = tick > queue.length
-
-            return (
-              <div key={t} className="rounded-lg border border-zinc-800 overflow-hidden" style={{ borderColor: `${threadColors[t]}33` }}>
-                {/* Thread header */}
-                <div className="flex items-center gap-2 px-3 py-1.5" style={{ background: threadBgs[t] }}>
-                  <div className="w-2.5 h-2.5 rounded-full animate-pulse" style={{
-                    backgroundColor: threadColors[t],
-                    animationDuration: isIdle ? '0s' : '1s',
-                    opacity: isIdle ? 0.3 : 1,
-                  }} />
-                  <span className="font-mono text-xs font-bold" style={{ color: threadColors[t] }}>
-                    Thread {t}
-                  </span>
-                  <span className="font-mono text-[10px] text-zinc-500">
-                    fibers: {fibers.filter((_, fIdx) => fIdx % threads === t)
-                      .map(f => `(${f.i},${f.k})`).join(' ')}
-                  </span>
-                  <span className="ml-auto font-mono text-[10px] text-zinc-500">
-                    {Math.min(tick, queue.length)}/{queue.length} ops
-                  </span>
-                  {isIdle && <span className="font-mono text-[10px] text-zinc-600 italic">idle</span>}
-                </div>
-
-                {/* Progress bar */}
-                <div className="h-1" style={{ background: `${threadColors[t]}15` }}>
-                  <div className="h-full transition-all duration-300 ease-out" style={{
-                    width: `${progress}%`,
-                    backgroundColor: threadColors[t],
-                    opacity: 0.7,
-                  }} />
-                </div>
-
-                {/* Current operation */}
-                <div className="px-3 py-2 min-h-[44px] flex items-center">
-                  {current && tick <= queue.length ? (
-                    <div className="flex items-center gap-3 w-full">
-                      <div className="flex-1">
-                        <div className="font-mono text-xs text-zinc-300">{current.label}</div>
-                        <div className="font-mono text-sm font-bold mt-0.5" style={{ color: threadColors[t] }}>
-                          {current.math}
-                        </div>
-                      </div>
-                      {current.type === 'buffer' && (
-                        <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
-                          CACHE
-                        </span>
-                      )}
-                      {current.redundant && (
-                        <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-red-500/15 text-red-300 border border-red-500/30">
-                          REDUNDANT
-                        </span>
-                      )}
-                      {current.usesBuffer && (
-                        <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-                          FROM CACHE
-                        </span>
-                      )}
-                      {current.product !== undefined && (
-                        <span className="shrink-0 font-mono text-xs text-zinc-500">
-                          → Y({current.i},{current.r2},{current.r3})
-                        </span>
-                      )}
-                    </div>
-                  ) : isIdle ? (
-                    <span className="font-mono text-xs text-zinc-600">✓ Complete</span>
-                  ) : (
-                    <span className="font-mono text-xs text-zinc-600">Waiting...</span>
-                  )}
-                </div>
+      {/* Current step callout */}
+      {currentStep ? (
+        <div className={`rounded-lg border px-4 py-3 flex items-center gap-3 ${
+          currentStep.type === 'cache'
+            ? 'border-cyan-500/40 bg-cyan-500/5'
+            : algo === 'naive'
+            ? 'border-red-500/20 bg-red-500/5'
+            : 'border-emerald-500/20 bg-emerald-500/5'
+        }`}>
+          <span className="text-xl shrink-0">
+            {currentStep.type === 'cache' ? '📥' : algo === 'naive' ? '⟳' : '⚡'}
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="font-mono text-xs text-white font-medium truncate">{currentStep.label}</div>
+            {currentStep.type === 'compute' && (
+              <div className="font-mono text-[10px] text-zinc-500 mt-0.5">
+                = {currentStep.v} × {MAT_B[currentStep.j]?.[currentStep.r2]} × {MAT_C[currentStep.k]?.[currentStep.r3]} = {currentStep.product}
               </div>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Input / Output Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Tensor Input */}
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4">
-          <div className="font-mono text-xs text-zinc-400 font-bold mb-3 flex items-center gap-2">
-            <span className="w-2 h-2 rounded bg-violet-500" />
-            Sparse Tensor X
-            <span className="text-zinc-600 font-normal">({tensor.length} nnz, {fibers.length} fibers)</span>
+            )}
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-[200px] overflow-y-auto pr-1">
-            {tensor.map(([i,j,k,v], idx) => {
-              const active = threadQueues.some((q) => {
-                const s = q[tick-1]
-                return s && s.i === i && s.k === k && (s.j === j || s.type === 'buffer')
-              })
+          {currentStep.type === 'compute' && algo === 'naive' && (
+            <span className="shrink-0 font-mono text-[9px] text-red-400 border border-red-500/30 px-2 py-0.5 rounded">+1 C mem read</span>
+          )}
+          {currentStep.type === 'compute' && algo === 'buffered' && (
+            <span className="shrink-0 font-mono text-[9px] text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded">from buffer ✓</span>
+          )}
+          {currentStep.type === 'cache' && (
+            <span className="shrink-0 font-mono text-[9px] text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded">
+              1 load → saves {(TENSOR.filter(([,, k]) => k === currentStep.k).length - 1) * R} reads
+            </span>
+          )}
+        </div>
+      ) : (
+        <div className="rounded-lg border border-zinc-800 bg-zinc-900/30 px-4 py-3 font-mono text-xs text-zinc-500 text-center">
+          Press ▶ to step through the computation
+        </div>
+      )}
+
+      {/* Main 3-col: Tensor | Factor Matrices | Memory + Output */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+        {/* Sparse Tensor X */}
+        <div className="rounded-lg border border-zinc-800 bg-zinc-950/80 p-3">
+          <div className="font-mono text-[10px] text-zinc-400 font-bold mb-3">
+            SPARSE TENSOR X [{I}×{J}×{K}] — {TENSOR.length} nonzeros
+          </div>
+          <div className="space-y-2.5">
+            {Array.from({ length: K }, (_, k) => {
+              const slice = TENSOR.filter(([,, kk]) => kk === k)
               return (
-                <div key={idx} className={`flex items-center gap-0.5 p-1 rounded transition-all group ${
-                  active ? 'bg-violet-500/20 ring-1 ring-violet-500/50' : 'hover:bg-zinc-800/50'
-                }`}>
-                  <span className="font-mono text-[10px] text-zinc-500">({i},{j},{k})</span>
-                  <input type="number" value={v} onChange={e => updateTensor(idx, e.target.value)}
-                    className="w-8 px-0.5 py-0.5 rounded text-center font-mono text-xs bg-zinc-800 border border-zinc-700 text-zinc-200 focus:border-violet-500 focus:outline-none"
-                  />
-                  <button onClick={() => removeNonzero(idx)}
-                    className="opacity-0 group-hover:opacity-100 w-4 h-4 flex items-center justify-center text-red-400 text-[10px] hover:bg-red-500/20 rounded transition-opacity"
-                  >×</button>
+                <div key={k}>
+                  <div className="font-mono text-[9px] text-zinc-500 mb-1">depth k={k}</div>
+                  <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${J}, 1fr)` }}>
+                    {Array.from({ length: I * J }, (_, idx) => {
+                      const i = Math.floor(idx / J), j = idx % J
+                      const entry = slice.find(([ei, ej]) => ei === i && ej === j)
+                      const isFiber = activeFiberKey === `${i},${k}`
+                      const isActive = currentStep?.type === 'compute'
+                        && currentStep.i === i && currentStep.j === j && currentStep.k === k
+                      return (
+                        <div key={idx} className={`h-9 flex flex-col items-center justify-center rounded text-[9px] font-mono transition-all ${
+                          isActive  ? 'bg-indigo-500 text-white font-bold shadow-lg shadow-indigo-500/40 scale-105' :
+                          isFiber && entry ? 'bg-indigo-500/30 border border-indigo-500/50 text-indigo-200' :
+                          isFiber   ? 'bg-indigo-500/5 border border-indigo-800/50 text-zinc-700' :
+                          entry     ? 'bg-zinc-800 border border-zinc-700 text-zinc-300' :
+                                      'bg-zinc-900/40 text-zinc-800'
+                        }`}>
+                          {entry ? (
+                            <>
+                              <span className="font-bold leading-none">{entry[3]}</span>
+                              <span className="text-[7px] text-zinc-500">({i},{j},{k})</span>
+                            </>
+                          ) : '·'}
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
               )
             })}
           </div>
-          <button onClick={addNonzero}
-            className="mt-2 w-full py-1.5 rounded border border-dashed border-zinc-700 text-zinc-500 font-mono text-xs hover:border-violet-500 hover:text-violet-400 transition-colors"
-          >+ Add nonzero</button>
+          {activeFiberKey && (
+            <div className="mt-2 font-mono text-[9px] text-indigo-400 border-t border-zinc-800 pt-2">
+              Active fiber i={currentStep?.i}, k={currentStep?.k} —{' '}
+              {TENSOR.filter(([i,,k]) => `${i},${k}` === activeFiberKey).length} nonzero(s)
+            </div>
+          )}
         </div>
 
-        {/* Factor Matrices */}
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4 space-y-4">
+        {/* Factor Matrices B and C */}
+        <div className="rounded-lg border border-zinc-800 bg-zinc-950/80 p-3 space-y-4">
+          <div className="font-mono text-[10px] text-zinc-400 font-bold">FACTOR MATRICES</div>
+
           <div>
-            <div className="font-mono text-xs text-zinc-400 font-bold mb-2 flex items-center gap-2">
-              <span className="w-2 h-2 rounded bg-indigo-500" />
-              Matrix B <span className="text-zinc-600">(J={J} × R={R})</span>
+            <div className="font-mono text-[10px] text-zinc-500 mb-2 flex items-center gap-2">
+              <span className="inline-block w-2 h-2 rounded bg-indigo-500" />
+              B [{J}×{R}] — mode-j contraction
             </div>
-            <div className="space-y-1">
-              {matB.map((row, j) => (
-                <div key={j} className="flex items-center gap-1">
-                  <span className="font-mono text-[10px] text-zinc-500 w-6">j={j}</span>
-                  {row.map((val, r) => {
-                    const active = threadQueues.some(q => { const s=q[tick-1]; return s && s.j===j && s.r2===r })
-                    return (
-                      <input key={r} type="number" value={val} onChange={e => updateB(j, r, e.target.value)}
-                        className={`w-9 px-1 py-0.5 rounded text-center font-mono text-xs border focus:outline-none transition-all ${
-                          active ? 'bg-indigo-500/20 border-indigo-500 text-indigo-200' : 'bg-zinc-800 border-zinc-700 text-zinc-200'
-                        }`}
-                      />
-                    )
-                  })}
-                </div>
+            <div className="grid gap-1" style={{ gridTemplateColumns: `auto repeat(${R}, 1fr)` }}>
+              <div className="font-mono text-[9px] text-zinc-600" />
+              {Array.from({ length: R }, (_, r) => (
+                <div key={r} className="font-mono text-[9px] text-zinc-500 text-center">r₂={r}</div>
               ))}
+              {MAT_B.map((row, j) => [
+                <div key={`jl${j}`} className="font-mono text-[9px] text-zinc-500 flex items-center pr-1">j={j}</div>,
+                ...row.map((v, r) => (
+                  <div key={`${j}${r}`} className={`h-10 flex items-center justify-center rounded font-mono text-base font-bold transition-all ${
+                    currentStep?.type === 'compute' && currentStep.j === j && currentStep.r2 === r
+                      ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30 scale-105'
+                      : currentStep?.type === 'compute' && currentStep.j === j
+                      ? 'bg-indigo-500/20 border border-indigo-500/40 text-indigo-300'
+                      : 'bg-zinc-800/60 border border-zinc-700/50 text-zinc-300'
+                  }`}>{v}</div>
+                ))
+              ])}
             </div>
           </div>
+
           <div>
-            <div className="font-mono text-xs text-zinc-400 font-bold mb-2 flex items-center gap-2">
-              <span className="w-2 h-2 rounded bg-cyan-500" />
-              Matrix C <span className="text-zinc-600">(K={K} × R={R})</span>
+            <div className="font-mono text-[10px] text-zinc-500 mb-2 flex items-center gap-2">
+              <span className="inline-block w-2 h-2 rounded bg-cyan-500" />
+              C [{K}×{R}] — mode-k contraction
+              {algo === 'buffered' && <span className="text-[9px] text-cyan-400">(buffered per fiber)</span>}
             </div>
-            <div className="space-y-1">
-              {matC.map((row, k) => (
-                <div key={k} className="flex items-center gap-1">
-                  <span className="font-mono text-[10px] text-zinc-500 w-6">k={k}</span>
-                  {row.map((val, r) => {
-                    const active = threadQueues.some(q => { const s=q[tick-1]; return s && s.type!=='buffer' && s.k===k && s.r3===r })
-                    return (
-                      <input key={r} type="number" value={val} onChange={e => updateC(k, r, e.target.value)}
-                        className={`w-9 px-1 py-0.5 rounded text-center font-mono text-xs border focus:outline-none transition-all ${
-                          active ? 'bg-cyan-500/20 border-cyan-500 text-cyan-200' : 'bg-zinc-800 border-zinc-700 text-zinc-200'
-                        }`}
-                      />
-                    )
-                  })}
-                </div>
+            <div className="grid gap-1" style={{ gridTemplateColumns: `auto repeat(${R}, 1fr)` }}>
+              <div className="font-mono text-[9px] text-zinc-600" />
+              {Array.from({ length: R }, (_, r) => (
+                <div key={r} className="font-mono text-[9px] text-zinc-500 text-center">r₃={r}</div>
               ))}
+              {MAT_C.map((row, k) => [
+                <div key={`kl${k}`} className="font-mono text-[9px] text-zinc-500 flex items-center pr-1">k={k}</div>,
+                ...row.map((v, r) => {
+                  const isLoading = currentStep?.type === 'cache' && currentStep.k === k
+                  const isActive  = currentStep?.type === 'compute' && currentStep.k === k && currentStep.r3 === r
+                  const inBuffer  = algo === 'buffered' && currentStep?.type === 'compute' && currentStep.k === k
+                  return (
+                    <div key={`${k}${r}`} className={`h-10 flex items-center justify-center rounded font-mono text-base font-bold transition-all ${
+                      isLoading ? 'bg-cyan-400 text-zinc-900 shadow-lg shadow-cyan-500/30 scale-105' :
+                      isActive  ? 'bg-cyan-500 text-white shadow-lg shadow-cyan-500/30 scale-105' :
+                      inBuffer  ? 'bg-cyan-500/20 border border-cyan-500/40 text-cyan-300' :
+                                  'bg-zinc-800/60 border border-zinc-700/50 text-zinc-300'
+                    }`}>{v}</div>
+                  )
+                })
+              ])}
             </div>
           </div>
         </div>
 
-        {/* Output Y */}
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4">
-          <div className="font-mono text-xs text-zinc-400 font-bold mb-3 flex items-center gap-2">
-            <span className="w-2 h-2 rounded bg-amber-500" />
-            Output Y <span className="text-zinc-600">(I×R×R)</span>
+        {/* Memory + Buffer + Output */}
+        <div className="space-y-3">
+
+          {/* C memory read counter */}
+          <div className="rounded-lg border border-zinc-800 bg-zinc-950/80 p-3">
+            <div className="font-mono text-[10px] text-zinc-400 font-bold mb-3">C MATRIX MEMORY READS</div>
+            <div className="mb-2">
+              <div className="flex justify-between font-mono text-[10px] mb-1">
+                <span className="text-zinc-500">reads so far</span>
+                <span className={algo === 'naive' ? 'text-red-400' : 'text-emerald-400'}>{cReadsTotal} / {algo === 'naive' ? naiveCReads : bufCReads}</span>
+              </div>
+              <div className="h-2.5 bg-zinc-800 rounded overflow-hidden">
+                <div className={`h-full rounded transition-all duration-200 ${algo === 'naive' ? 'bg-red-500/70' : 'bg-emerald-500/70'}`}
+                  style={{ width: `${Math.min(100, (cReadsTotal / (algo === 'naive' ? naiveCReads : bufCReads)) * 100)}%` }} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-zinc-800">
+              <div className="text-center">
+                <div className="font-mono text-lg font-bold text-red-400">{naiveCReads}</div>
+                <div className="font-mono text-[8px] text-zinc-600">naive total</div>
+              </div>
+              <div className="text-center">
+                <div className="font-mono text-lg font-bold text-emerald-400">{bufCReads}</div>
+                <div className="font-mono text-[8px] text-zinc-600">buffered total</div>
+              </div>
+            </div>
+            <div className="text-center pt-2 border-t border-zinc-800 mt-2">
+              <div className="font-mono text-xl font-bold text-amber-400">{cSaved} saved</div>
+              <div className="font-mono text-[8px] text-zinc-500">{((cSaved/naiveCReads)*100).toFixed(0)}% fewer C reads</div>
+            </div>
           </div>
-          <div className="space-y-3">
-            {Array.from({ length: I }, (_, i) => (
-              <div key={i}>
-                <div className="font-mono text-[10px] text-zinc-500 mb-1">i={i}</div>
-                <div className="grid grid-cols-2 gap-1.5">
-                  {Array.from({ length: R }, (_, r2) =>
-                    Array.from({ length: R }, (_, r3) => {
-                      const partial = partialY[i][r2][r3]
-                      const final = outputY[i][r2][r3]
-                      const done = partial === final && tick > 0
-                      const active = threadQueues.some(q => {
-                        const s = q[tick-1]
-                        return s && s.i === i && s.r2 === r2 && s.r3 === r3
-                      })
-                      return (
-                        <div key={`${r2}-${r3}`} className={`relative px-2 py-1.5 rounded font-mono text-xs text-center border transition-all duration-200 ${
-                          active ? 'border-amber-500 bg-amber-500/15 scale-105 shadow-lg shadow-amber-500/20' :
-                          done ? 'border-emerald-600/50 bg-emerald-500/10' :
-                          'border-zinc-700 bg-zinc-800/50'
-                        }`}>
-                          <div className="text-[9px] text-zinc-500">r₂={r2},r₃={r3}</div>
-                          <div className={`text-sm font-bold ${done ? 'text-emerald-300' : 'text-zinc-200'}`}>
-                            {partial}
-                          </div>
-                          {!done && tick > 0 && (
-                            <div className="text-[9px] text-zinc-600">/{final}</div>
-                          )}
-                          {active && (
-                            <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-                          )}
-                        </div>
-                      )
-                    })
-                  )}
+
+          {/* Buffer state */}
+          {algo === 'buffered' && (
+            <div className={`rounded-lg border p-3 transition-all ${buffer ? 'border-cyan-500/30 bg-cyan-500/5' : 'border-zinc-800 bg-zinc-900/30'}`}>
+              <div className="font-mono text-[10px] text-cyan-400 font-bold mb-2">REGISTER BUFFER</div>
+              {buffer ? (
+                <div>
+                  <div className="font-mono text-[9px] text-zinc-500 mb-1.5">C[k={currentStep?.k},:] loaded</div>
+                  <div className="flex gap-2">
+                    {buffer.map((v, r) => (
+                      <div key={r} className={`flex-1 h-10 flex flex-col items-center justify-center rounded border font-mono transition-all ${
+                        currentStep?.r3 === r
+                          ? 'bg-cyan-500/30 border-cyan-500/60 text-cyan-200'
+                          : 'bg-cyan-500/10 border-cyan-500/20 text-cyan-300'
+                      }`}>
+                        <span className="text-sm font-bold">{v}</span>
+                        <span className="text-[8px] text-zinc-600">r₃={r}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="font-mono text-[10px] text-zinc-600 italic">empty</div>
+              )}
+            </div>
+          )}
+
+          {/* Output Y partial */}
+          <div className="rounded-lg border border-zinc-800 bg-zinc-950/80 p-3">
+            <div className="font-mono text-[10px] text-zinc-400 font-bold mb-2">OUTPUT Y[i,r₂,r₃]</div>
+            {yOutput.map((mat, i) => (
+              <div key={i} className="mb-2">
+                <div className="font-mono text-[9px] text-zinc-600 mb-0.5">i={i}</div>
+                <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${R * R}, 1fr)` }}>
+                  {mat.flatMap((row, r2) => row.map((v, r3) => {
+                    const isActive = currentStep?.type === 'compute'
+                      && currentStep.i === i && currentStep.r2 === r2 && currentStep.r3 === r3
+                    return (
+                      <div key={`${r2}${r3}`} className={`h-9 flex flex-col items-center justify-center rounded font-mono transition-all ${
+                        isActive ? 'bg-amber-500/40 border border-amber-500/60 text-amber-200 scale-105'
+                                 : v > 0 ? 'bg-amber-500/10 border border-amber-500/20 text-amber-300'
+                                         : 'bg-zinc-900 border border-zinc-800 text-zinc-700'
+                      }`}>
+                        <span className="text-xs font-bold">{v > 0 ? v : '·'}</span>
+                        {v > 0 && <span className="text-[7px] text-zinc-600">{r2},{r3}</span>}
+                      </div>
+                    )
+                  }))}
                 </div>
               </div>
             ))}
@@ -461,52 +371,43 @@ export default function TTMcDemo() {
         </div>
       </div>
 
-      {/* Comparison panel */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className={`rounded-lg border p-4 transition-all ${
-          algo === 'naive' ? 'border-red-500/40 bg-red-500/5 shadow-lg shadow-red-500/5' : 'border-zinc-800 bg-zinc-900/30'
-        }`}>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="font-mono text-xs font-bold text-red-400">✗ Naive</span>
-            {algo === 'naive' && <span className="text-[10px] font-mono text-red-400/60 border border-red-500/30 px-1.5 rounded">ACTIVE</span>}
-          </div>
-          <div className="font-mono text-[11px] text-zinc-400 space-y-1">
-            <div>Total ops: <span className="text-red-300 font-bold">{tensor.length * R * R}</span></div>
-            <div>Wall-clock (parallel): <span className="text-red-300 font-bold">{wallClockNaive} ticks</span></div>
-            <div className="text-red-400/70 text-[10px] mt-2 leading-relaxed">
-              Every nonzero recomputes C(k,r₃) — same value fetched {tensor.length > fibers.length ? `${Math.round(tensor.length/fibers.length)}×` : ''} per fiber
-            </div>
-          </div>
+      {/* Wall-clock speedup comparison */}
+      <div className="rounded-lg border border-zinc-800 bg-zinc-900/30 p-4">
+        <div className="font-mono text-xs text-zinc-400 font-bold mb-3 flex items-center gap-3">
+          WALL-CLOCK ({numThreads} thread{numThreads>1?'s':''})
+          <span className="text-emerald-400 font-bold text-sm">{speedup}× speedup</span>
+          <span className="text-zinc-600 font-normal text-[10px]">real experiment: 2.87× on 4T, 2048³ tensor</span>
         </div>
-        <div className={`rounded-lg border p-4 transition-all ${
-          algo === 'buffered' ? 'border-emerald-500/40 bg-emerald-500/5 shadow-lg shadow-emerald-500/5' : 'border-zinc-800 bg-zinc-900/30'
-        }`}>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="font-mono text-xs font-bold text-emerald-400">✓ Buffered</span>
-            {algo === 'buffered' && <span className="text-[10px] font-mono text-emerald-400/60 border border-emerald-500/30 px-1.5 rounded">ACTIVE</span>}
-          </div>
-          <div className="font-mono text-[11px] text-zinc-400 space-y-1">
-            <div>Cache ops: <span className="text-cyan-300 font-bold">{fibers.length * R}</span></div>
-            <div>Multiply ops: <span className="text-emerald-300 font-bold">{tensor.length * R * R}</span></div>
-            <div>Wall-clock (parallel): <span className="text-emerald-300 font-bold">{wallClockBuffered} ticks</span></div>
-            <div className="text-emerald-400/70 text-[10px] mt-2 leading-relaxed">
-              C(k,:) cached once per fiber → no redundant memory access
+        {[
+          { label: '✗ Naive',    ticks: naiveWall, color: 'bg-red-500/60',     text: 'text-red-400' },
+          { label: '✓ Buffered', ticks: bufWall,   color: 'bg-emerald-500/60', text: 'text-emerald-400' },
+        ].map(r => (
+          <div key={r.label} className="flex items-center gap-3 mb-2">
+            <span className="font-mono text-[10px] text-zinc-400 w-24 shrink-0">{r.label}</span>
+            <div className="flex-1 h-3 bg-zinc-800 rounded overflow-hidden">
+              <div className={`h-full rounded ${r.color}`} style={{ width: `${(r.ticks / naiveWall) * 100}%` }} />
             </div>
+            <span className={`font-mono text-[10px] ${r.text} w-24 text-right`}>{r.ticks} compute steps</span>
           </div>
-        </div>
+        ))}
       </div>
 
-      {/* Explanation */}
-      <div className="rounded-lg border border-zinc-800 bg-zinc-900/30 p-4">
-        <div className="font-mono text-xs text-zinc-400 font-bold mb-2">Research Context</div>
-        <div className="font-mono text-[11px] text-zinc-500 space-y-1 leading-relaxed">
-          <div>• <span className="text-zinc-300">CSF format</span> stores sparse tensors as compressed fiber trees — efficient iteration per mode</div>
-          <div>• <span className="text-red-300">REDUNDANT</span> = C(k,r₃) re-fetched for every nonzero in same fiber (naive approach)</div>
-          <div>• <span className="text-emerald-300">FROM CACHE</span> = intermediate buffer eliminates redundant memory access</div>
-          <div>• Real system: 2048³ tensor, 1% density, R=S=60 → best mode achieves <span className="text-emerald-300">2.87× speedup</span> on 4 threads</div>
-          <div>• Key challenge: lock contention on shared output buffer limits parallel scaling</div>
-          <div>• 7 algorithm variants across 3 modes — performance depends on CSF representation order</div>
-        </div>
+      {/* Research context */}
+      <div className="rounded-lg border border-zinc-800 overflow-hidden">
+        <button onClick={() => setShowCtx(v => !v)}
+          className="w-full flex items-center justify-between px-4 py-2.5 font-mono text-xs text-zinc-500 hover:text-zinc-200 transition-colors">
+          <span>Research context</span>
+          <span>{showCtx ? '▲' : '▼'}</span>
+        </button>
+        {showCtx && (
+          <div className="border-t border-zinc-800 px-4 py-3 space-y-1 font-mono text-[11px] text-zinc-500">
+            <p>• Input: 2048³ tensor, ~1% density, R=S=60 — Tucker2 decomposition (compressing modes 2 and 3)</p>
+            <p>• CSF (Compressed Sparse Fiber) format groups nonzeros by fiber for cache-efficient iteration</p>
+            <p>• 7 algorithm variants across 3 mode orderings — buffered wins on mode-1 chain</p>
+            <p>• Bottleneck at high thread count: atomic updates on shared Y cause lock contention, not memory</p>
+            <p>• C++ / OpenMP; validated on FROSTT public tensor benchmarks</p>
+          </div>
+        )}
       </div>
     </div>
   )
