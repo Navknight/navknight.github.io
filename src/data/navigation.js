@@ -9,4 +9,6 @@ export const NAV_SECTIONS = [
   { id: 'projects', label: 'projects', key: '3', watermark: 'Projects' },
   { id: 'interactive', label: 'demos', key: '4', watermark: 'Demos' },
   { id: 'blog', label: 'blog', key: '5', watermark: 'Blog' },
+  { id: 'dsa', label: 'dsa', key: '6', watermark: 'DSA' },
+  { id: 'contact', label: 'contact', key: '7', watermark: 'Contact' },
 ]

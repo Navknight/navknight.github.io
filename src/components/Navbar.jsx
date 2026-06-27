@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
-import { Menu, X } from 'lucide-react'
+import { useLocation, Link } from 'react-router-dom'
+import { Menu, X, Sun, Moon } from 'lucide-react'
 import { NAV_SECTIONS } from '../data/navigation'
+import useTheme from '../hooks/useTheme'
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [activeSection, setActiveSection] = useState(NAV_SECTIONS[0].id)
   const { pathname } = useLocation()
   const onHome = pathname === '/'
+  const { isLight, toggle } = useTheme()
 
   useEffect(() => {
     const onScroll = () => {
@@ -62,15 +64,19 @@ export default function Navbar() {
 
         {/* Right */}
         <div className="hidden md:flex items-center gap-3">
-          <div className="flex items-center gap-1 text-[10px] text-text-muted opacity-60">
-            <span className="kbd">0</span>-<span className="kbd">5</span> nav
-          </div>
-          <a
-            href="mailto:abhi.gupta8802@gmail.com"
-            className="text-xs text-text-muted hover:text-accent-green link-animated transition-colors"
+          <Link
+            to="/graph"
+            className="text-xs text-text-muted hover:text-accent-cyan link-animated transition-colors"
           >
-            contact
-          </a>
+            graph
+          </Link>
+          <button
+            onClick={toggle}
+            className="text-text-muted hover:text-text transition-colors p-1"
+            aria-label="Toggle theme"
+          >
+            {isLight ? <Moon size={14} /> : <Sun size={14} />}
+          </button>
         </div>
 
         {/* Mobile toggle */}
@@ -90,11 +96,24 @@ export default function Navbar() {
               key={s.id}
               href={onHome ? `#${s.id}` : `/#${s.id}`}
               onClick={() => setMobileOpen(false)}
-              className="text-sm text-text-secondary hover:text-text transition-colors py-2.5 border-b border-border/50 last:border-0"
+              className="text-sm text-text-secondary hover:text-text transition-colors py-2.5 border-b border-border/50"
             >
               <span className="text-accent-orange">[{s.key}]</span> {s.label}
             </a>
           ))}
+          <Link
+            to="/graph"
+            onClick={() => setMobileOpen(false)}
+            className="text-sm text-text-secondary hover:text-accent-cyan transition-colors py-2.5 border-b border-border/50"
+          >
+            graph
+          </Link>
+          <button
+            onClick={() => { toggle(); setMobileOpen(false) }}
+            className="text-sm text-text-secondary hover:text-text transition-colors py-2.5 text-left"
+          >
+            {isLight ? '☀ light mode' : '☾ dark mode'} (toggle)
+          </button>
         </div>
       )}
     </nav>

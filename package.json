@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "node scripts/generate-rss.js && vite build",
+    "dev": "node scripts/sync-dsa-notes.js && vite",
+    "build": "node scripts/sync-dsa-notes.js && node scripts/generate-rss.js && vite build",
     "preview": "vite preview",
-    "deploy": "node scripts/generate-rss.js && vite build && gh-pages -d dist"
+    "deploy": "node scripts/sync-dsa-notes.js && node scripts/generate-rss.js && vite build && gh-pages -d dist"
   },
   "repository": {
     "type": "git",

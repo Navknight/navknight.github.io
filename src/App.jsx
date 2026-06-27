@@ -11,12 +11,17 @@ import Projects from './components/Projects'
 import Skills from './components/Skills'
 import Interactive from './components/Interactive'
 import Blog from './components/Blog'
+import DSA from './components/DSA'
+import Contact from './components/Contact'
 import Footer from './components/Footer'
 import Watermark from './components/Watermark'
 import ScrollProgress from './components/ui/ScrollProgress'
 
 import BlogList from './pages/BlogList'
 import BlogPost from './pages/BlogPost'
+import DSAList from './pages/DSAList'
+import DSAPost from './pages/DSAPost'
+import GraphPage from './pages/GraphPage'
 
 function Portfolio() {
   const [loaded, setLoaded] = useState(false)
@@ -35,6 +40,8 @@ function Portfolio() {
         <Projects />
         <Interactive />
         <Blog />
+        <DSA />
+        <Contact />
       </main>
       <Footer />
     </div>
@@ -48,6 +55,9 @@ export default function App() {
         <Route path="/" element={<Portfolio />} />
         <Route path="/blog" element={<BlogList />} />
         <Route path="/blog/:slug" element={<BlogPost />} />
+        <Route path="/dsa" element={<DSAList />} />
+        <Route path="/dsa/:slug" element={<DSAPost />} />
+        <Route path="/graph" element={<GraphPage />} />
       </Routes>
     </BrowserRouter>
   )

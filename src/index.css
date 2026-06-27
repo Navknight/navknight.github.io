@@ -42,6 +42,41 @@
   --font-mono: 'JetBrains Mono', monospace;
 }
 
+html.light {
+  --color-bg: #f4f4f5;
+  --color-surface: #e4e4e7;
+  --color-surface-2: #d4d4d8;
+  --color-surface-3: #a1a1aa;
+  --color-border: rgba(0, 0, 0, 0.08);
+  --color-border-hover: rgba(0, 0, 0, 0.18);
+
+  --color-accent: #7c3aed;
+  --color-accent-green: #15803d;
+  --color-accent-orange: #c2410c;
+  --color-accent-blue: #1d4ed8;
+  --color-accent-pink: #be185d;
+  --color-accent-yellow: #a16207;
+  --color-accent-cyan: #0e7490;
+
+  --color-text: #18181b;
+  --color-text-secondary: #3f3f46;
+  --color-text-muted: #71717a;
+
+  --color-terminal-green: #15803d;
+  --color-terminal-amber: #b45309;
+  --color-terminal-red: #b91c1c;
+  --color-terminal-blue: #1d4ed8;
+
+  --color-watermark: rgba(0, 0, 0, 0.04);
+}
+
+html.light ::selection {
+  background: rgba(124, 58, 237, 0.2);
+  color: #18181b;
+}
+
+html.light body::before { opacity: 0.015; }
+
 html {
   scroll-behavior: smooth;
 }

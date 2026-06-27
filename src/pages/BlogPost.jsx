@@ -4,6 +4,8 @@ import { ArrowLeft } from 'lucide-react'
 import { getPost } from '../data/posts'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import BlogPlaceholder from '../components/ui/BlogPlaceholder'
+import MiniGraph from '../components/ui/MiniGraph'
 
 export default function BlogPost() {
   const { slug } = useParams()
@@ -39,8 +41,8 @@ export default function BlogPost() {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main className="section-wrap flex-1 pt-24 max-w-3xl mx-auto">
-        <div className="content-area">
+      <main className="flex-1 pt-28 pb-24 px-6 flex flex-col items-center">
+        <div className="w-full max-w-2xl">
           <Link
             to="/blog"
             className="inline-flex items-center gap-1.5 text-[11px] text-text-muted hover:text-accent link-animated transition-colors mb-8"
@@ -57,11 +59,12 @@ export default function BlogPost() {
             </div>
           ) : (
             <article>
-              {post.image && (
-                <div className="rounded-lg overflow-hidden mb-8 h-56 md:h-72">
-                  <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
-                </div>
-              )}
+              <div className="rounded-lg overflow-hidden mb-8 h-56 md:h-72">
+                {post.image
+                  ? <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
+                  : <BlogPlaceholder title={post.title} className="w-full h-full" />
+                }
+              </div>
 
               <header className="mb-10">
                 <h1 className="font-sans text-xl font-bold text-text mb-3">{post.title}</h1>
@@ -76,6 +79,10 @@ export default function BlogPost() {
                   </div>
                 </div>
               </header>
+
+              <div className="mb-8">
+                <MiniGraph nodeId={`blog:${post.slug}`} />
+              </div>
 
               <div
                 className="prose"

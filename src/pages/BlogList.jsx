@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { posts } from '../data/posts'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import BlogPlaceholder from '../components/ui/BlogPlaceholder'
 
 function PostItem({ post }) {
   return (
@@ -10,15 +11,12 @@ function PostItem({ post }) {
       className="group flex gap-4 py-5 border-b border-border/50 last:border-b-0 transition-all duration-300 hover:pl-2"
     >
       {/* Thumbnail */}
-      {post.image && (
-        <div className="w-20 h-14 rounded overflow-hidden shrink-0 bg-surface-2">
-          <img
-            src={post.image}
-            alt={post.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        </div>
-      )}
+      <div className="w-20 h-14 rounded overflow-hidden shrink-0">
+        {post.image
+          ? <img src={post.image} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          : <BlogPlaceholder title={post.title} className="w-full h-full" />
+        }
+      </div>
 
       <div className="flex-1 min-w-0 flex flex-col justify-center">
         <div className="flex items-baseline justify-between gap-3">
@@ -46,9 +44,8 @@ export default function BlogList() {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main className="section-wrap flex-1 pt-24">
-        <div className="watermark">Blog</div>
-        <div className="content-area">
+      <main className="flex-1 pt-28 pb-24 px-6 flex flex-col items-center">
+        <div className="w-full max-w-3xl">
           <h1 className="font-sans text-2xl font-bold text-text mb-2">Blog</h1>
           <p className="text-xs text-text-secondary mb-10">
             Notes on systems, GPU architecture, browser internals, and security research.

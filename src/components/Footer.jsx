@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 export default function Footer() {
   return (
     <footer className="page-container py-16 border-t border-border">
@@ -17,6 +19,9 @@ export default function Footer() {
           <a href="https://www.linkedin.com/in/abhinav-gupta-iitt/" target="_blank" rel="noopener noreferrer" className="text-text-muted hover:text-accent-blue link-animated transition-colors">
             linkedin
           </a>
+          <Link to="/dsa" className="text-text-muted hover:text-accent link-animated transition-colors">
+            dsa
+          </Link>
           <a href="mailto:abhi.gupta8802@gmail.com" className="text-text-muted hover:text-accent-orange link-animated transition-colors">
             email
           </a>

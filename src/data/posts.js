@@ -7,9 +7,11 @@ function parseFrontmatter(raw) {
   const match = raw.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/)
   if (!match) return { meta: {}, content: raw }
   const meta = Object.fromEntries(
-    match[1].split('\n').filter(Boolean).map(line => {
+    match[1].split('\n').filter(Boolean).flatMap(line => {
       const idx = line.indexOf(': ')
-      return [line.slice(0, idx).trim(), line.slice(idx + 2).trim()]
+      if (idx === -1) return []   // skip "key:" with no value (e.g. "image:")
+      const val = line.slice(idx + 2).trim()
+      return val ? [[line.slice(0, idx).trim(), val]] : []
     })
   )
   return { meta, content: match[2] }

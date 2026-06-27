@@ -6,7 +6,18 @@
     <description>Notes on systems, GPU architecture, browser internals, and security research.</description>
     <language>en-us</language>
     <atom:link href="https://navknight.github.io/rss.xml" rel="self" type="application/rss+xml" />
-    <lastBuildDate>Sat, 27 Jun 2026 03:34:57 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 27 Jun 2026 09:51:20 GMT</lastBuildDate>
+  <item>
+    <title>Building This Website</title>
+    <link>https://navknight.github.io/blog/building-this-website</link>
+    <guid>https://navknight.github.io/blog/building-this-website</guid>
+    <pubDate>Sat, 27 Jun 2026 00:00:00 GMT</pubDate>
+    <description>How I built this website</description>
+    <content:encoded><![CDATA[<p>I have tried multiple times before to actually get a portfolio website up and running, but every time I ended up abandoning the project. Sometimes I got too ambitious and started a complex 3D project in hopes to build something like the F1 driver <a href="https://landonorris.com/">Lando Norris&#39;s</a> website. Other times I just could not figure out what would make <em>my</em> portfolio different from the millions out there. But most of the time, it was just me procrastinating - I&#39;ll make it after this exam, I&#39;ll make it before the internship season starts, I&#39;ll make it right before the placements, I&#39;ll make it after I am done revising DSA for my job hunt and so on. </p>
+<p>So this time, I finally decided to build and deploy it, regardless of how it looks and what I showcase on it. The version of my portfolio and blog you are looking at currently is probably after multiple iterations of the original one that I just forced myself to post. </p>
+<p>Over time I realised that the main function of this website is for me to try new things out. Initially I did not have a blog section at all, it was just my resume but in a website format.</p>
+]]></content:encoded>
+  </item>
   <item>
     <title>Hello, Blog</title>
     <link>https://navknight.github.io/blog/hello-world</link>

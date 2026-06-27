@@ -16,6 +16,12 @@
         if (redirect && redirect !== location.href) {
           history.replaceState(null, null, redirect);
         }
+        // Theme: localStorage → system preference
+        var saved = localStorage.getItem('theme');
+        var preferLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+        if (saved === 'light' || (!saved && preferLight)) {
+          document.documentElement.classList.add('light');
+        }
       })();
     </script>
     <div id="root"></div>

@@ -3,21 +3,19 @@ import { Link } from 'react-router-dom'
 import { posts } from '../data/posts'
 import Section from './ui/Section'
 import AnimatedItem from './ui/AnimatedItem'
+import BlogPlaceholder from './ui/BlogPlaceholder'
 
 function PostItem({ post, index }) {
   return (
     <AnimatedItem index={index} as={Link} to={`/blog/${post.slug}`}
       className="group flex gap-4 py-4 border-b border-border/50 last:border-b-0 hover:pl-1"
     >
-      {post.image && (
-        <div className="w-16 h-12 rounded overflow-hidden shrink-0 bg-surface-2">
-          <img
-            src={post.image}
-            alt={post.title}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-          />
-        </div>
-      )}
+      <div className="w-16 h-12 rounded overflow-hidden shrink-0">
+        {post.image
+          ? <img src={post.image} alt={post.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+          : <BlogPlaceholder title={post.title} className="w-full h-full" />
+        }
+      </div>
       <div className="flex-1 min-w-0 flex flex-col justify-center">
         <div className="flex items-baseline justify-between gap-3">
           <span className="text-xs text-text-secondary group-hover:text-accent transition-colors duration-300 truncate">

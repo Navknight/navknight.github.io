@@ -8,7 +8,7 @@ import useInView from '../../hooks/useInView'
  *   className - additional classes
  *   as        - element type (default 'div')
  */
-export default function AnimatedItem({ index = 0, delay = 80, className = '', as: Tag = 'div', children }) {
+export default function AnimatedItem({ index = 0, delay = 80, className = '', as: Tag = 'div', children, ...rest }) {
   const { ref, visible } = useInView(0.1)
 
   return (
@@ -18,6 +18,7 @@ export default function AnimatedItem({ index = 0, delay = 80, className = '', as
         visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
       } ${className}`}
       style={{ transitionDelay: `${index * delay}ms` }}
+      {...rest}
     >
       {children}
     </Tag>
