@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { getPost } from '../data/posts'
@@ -7,6 +8,33 @@ import Footer from '../components/Footer'
 export default function BlogPost() {
   const { slug } = useParams()
   const post = getPost(slug)
+
+  useEffect(() => {
+    if (!post) return
+    const prevTitle = document.title
+    document.title = `${post.title} — Abhinav Gupta`
+
+    const setMeta = (name, content, prop = false) => {
+      const sel = prop ? `meta[property="${name}"]` : `meta[name="${name}"]`
+      let el = document.querySelector(sel)
+      if (!el) {
+        el = document.createElement('meta')
+        prop ? el.setAttribute('property', name) : el.setAttribute('name', name)
+        document.head.appendChild(el)
+      }
+      el.setAttribute('content', content)
+      return el
+    }
+
+    const url = `https://navknight.github.io/blog/${post.slug}`
+    setMeta('description', post.description)
+    setMeta('og:title', post.title, true)
+    setMeta('og:description', post.description, true)
+    setMeta('og:url', url, true)
+    setMeta('og:type', 'article', true)
+
+    return () => { document.title = prevTitle }
+  }, [post])
 
   return (
     <div className="min-h-screen flex flex-col">

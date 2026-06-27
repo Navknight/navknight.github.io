@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://navknight.github.io/sitemap.xml
