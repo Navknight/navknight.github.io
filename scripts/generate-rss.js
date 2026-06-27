@@ -70,3 +70,20 @@ const xml = `<?xml version="1.0" encoding="UTF-8"?>
 
 writeFileSync(outFile, xml)
 console.log(`RSS generated: ${posts.length} post(s)`)
+
+const sitemapUrls = [
+  { loc: SITE_URL, priority: '1.0' },
+  { loc: `${SITE_URL}/blog`, priority: '0.8' },
+  ...posts.map(p => ({ loc: `${SITE_URL}/blog/${p.slug}`, lastmod: p.date, priority: '0.7' })),
+]
+
+const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${sitemapUrls.map(u => `  <url>
+    <loc>${u.loc}</loc>${u.lastmod ? `\n    <lastmod>${u.lastmod}</lastmod>` : ''}
+    <priority>${u.priority}</priority>
+  </url>`).join('\n')}
+</urlset>`
+
+writeFileSync(join(__dirname, '../public/sitemap.xml'), sitemap)
+console.log(`Sitemap generated: ${sitemapUrls.length} URL(s)`)
