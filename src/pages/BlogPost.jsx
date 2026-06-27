@@ -4,7 +4,6 @@ import { ArrowLeft } from 'lucide-react'
 import { getPost } from '../data/posts'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import ParticleField from '../components/ParticleField'
 
 export default function BlogPost() {
   const { slug } = useParams()
@@ -38,52 +37,53 @@ export default function BlogPost() {
   }, [post])
 
   return (
-    <div className="relative min-h-screen">
-      <ParticleField />
+    <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main className="section-container max-w-2xl">
-        <Link
-          to="/blog"
-          className="inline-flex items-center gap-1.5 font-mono text-xs text-text-muted hover:text-accent-indigo transition-colors mb-10"
-        >
-          <ArrowLeft size={13} /> All posts
-        </Link>
+      <main className="section-wrap flex-1 pt-24 max-w-3xl mx-auto">
+        <div className="content-area">
+          <Link
+            to="/blog"
+            className="inline-flex items-center gap-1.5 text-[11px] text-text-muted hover:text-accent link-animated transition-colors mb-8"
+          >
+            <ArrowLeft size={12} /> all posts
+          </Link>
 
-        {!post ? (
-          <div className="glass rounded-2xl p-8 border border-white/5 text-center">
-            <p className="font-mono text-text-muted text-sm">Post not found.</p>
-            <Link to="/blog" className="font-mono text-xs text-accent-indigo hover:underline mt-3 inline-block">
-              ← Back to blog
-            </Link>
-          </div>
-        ) : (
-          <article>
-            {post.image && (
-              <div className="rounded-2xl overflow-hidden mb-8 h-64 md:h-80">
-                <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
-              </div>
-            )}
+          {!post ? (
+            <div>
+              <p className="text-sm text-text-muted">Post not found.</p>
+              <Link to="/blog" className="text-xs text-text-muted hover:text-accent underline underline-offset-2 mt-3 inline-block">
+                ← Back to blog
+              </Link>
+            </div>
+          ) : (
+            <article>
+              {post.image && (
+                <div className="rounded-lg overflow-hidden mb-8 h-56 md:h-72">
+                  <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
+                </div>
+              )}
 
-            <header className="mb-10">
-              <div className="flex flex-wrap gap-1.5 mb-4">
-                {post.tags.map(t => (
-                  <span key={t} className="px-2 py-0.5 text-[10px] font-mono text-accent-indigo bg-accent-indigo/10 rounded-lg border border-accent-indigo/20">
-                    {t}
-                  </span>
-                ))}
-              </div>
-              <h1 className="text-2xl font-bold text-text mb-3">{post.title}</h1>
-              <time className="font-mono text-xs text-text-muted">
-                {new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-              </time>
-            </header>
+              <header className="mb-10">
+                <h1 className="font-sans text-xl font-bold text-text mb-3">{post.title}</h1>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <time className="text-[11px] text-text-muted">
+                    {new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  </time>
+                  <div className="flex gap-2">
+                    {post.tags.map(t => (
+                      <span key={t} className="text-[10px] text-accent-green">#{t}</span>
+                    ))}
+                  </div>
+                </div>
+              </header>
 
-            <div
-              className="glass rounded-2xl p-8 border border-white/5 prose"
-              dangerouslySetInnerHTML={{ __html: post.html }}
-            />
-          </article>
-        )}
+              <div
+                className="prose"
+                dangerouslySetInnerHTML={{ __html: post.html }}
+              />
+            </article>
+          )}
+        </div>
       </main>
       <Footer />
     </div>
