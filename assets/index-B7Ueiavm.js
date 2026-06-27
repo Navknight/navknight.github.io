@@ -5938,8 +5938,8 @@ Node* copyRandomList(Node* head) {
 \`\`\`
 
 ### Complexity
-- Time: O(n)
-- Space: O(n)
+- Time: $O(n)$
+- Space: $O(n)$
 `,"../dsa-notes/Linked Lists/Find the Duplicate Number.md":`---
 difficulty: Medium
 topics:
@@ -5990,8 +5990,8 @@ int findDuplicate(vector<int>& nums) {
 \`\`\`
 
 ### Complexity
-- Time: O(n)
-- Space: O(1)
+- Time: $O(n)$
+- Space: $O(1)$
 
 ## Bit Manipulation
 For each bit position, count how many numbers in \`[1..n]\` have that bit set (\`base\`) vs how many in \`nums\` have it set (\`actual\`). If \`actual > base\`, the duplicate has that bit set.
@@ -6011,8 +6011,8 @@ int findDuplicate(vector<int>& nums) {
 \`\`\`
 
 ### Complexity
-- Time: O(32n) = O(n)
-- Space: O(1)
+- Time: $O(32n) = O(n)$
+- Space: $O(1)$
 
 ## Binary Search on Answer
 Binary search over value range \`[1..n]\`. For mid, count elements in \`nums\` that are \`<= mid\`. If count \`> mid\`, duplicate is in \`[1..mid]\`; else in \`[mid+1..n]\`.
@@ -6033,8 +6033,8 @@ int findDuplicate(vector<int>& nums) {
 \`\`\`
 
 ### Complexity
-- Time: O(n log n)
-- Space: O(1)`,"../dsa-notes/Linked Lists/Intersection Of Two Linked Lists.md":`---
+- Time: $O(n log n)$
+- Space: $O(1)$`,"../dsa-notes/Linked Lists/Intersection Of Two Linked Lists.md":`---
 difficulty: Easy
 topics: ["Linked Lists"]
 source: Leetcode
