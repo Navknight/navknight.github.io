@@ -382,6 +382,61 @@ vector<string> decode(string s) {
 	return ans;
 }
 \`\`\`
+`,"../dsa-notes/Arrays/Filter Occupied Intervals.md":`---
+difficulty: Medium
+topics:
+  - Arrays
+  - Sorting
+source: Leetcode
+star: false
+link: https://leetcode.com/contest/weekly-contest-508/problems/filter-occupied-intervals/
+date: 2026-06-28
+---
+
+[[Arrays]] [[Sorting]]
+
+# Problem
+Given occupied intervals (may overlap), merge them, then remove all points in \`[freeStart, freeEnd]\`. Return remaining occupied intervals sorted.
+
+# Approach
+## Sort, Merge, Cut
+
+Two phases. Sort by start. Merge touching/overlapping intervals: next starts within \`curr.end + 1\`.
+
+Cut the free interval with two independent \`if\`s (not \`else-if\`: spanning case needs both):
+- If interval starts left of free zone: keep left part \`[s, freeStart-1]\`
+- If interval ends right of free zone: keep right part \`[freeEnd+1, e]\`
+
+Two separate \`if\`s handles the spanning case (interval contains entire free interval): outputs both halves.
+
+# Code
+\`\`\`cpp
+vector<vector<int>> filterOccupiedIntervals(vector<vector<int>>& occupiedIntervals, int freeStart, int freeEnd) {
+    sort(occupiedIntervals.begin(), occupiedIntervals.end());
+    int n = occupiedIntervals.size();
+    vector<vector<int>> merged;
+    merged.push_back(occupiedIntervals[0]);
+    for (int i = 1; i < n; i++) {
+        if (occupiedIntervals[i][0] <= merged.back()[1] + 1)
+            merged.back()[1] = max(merged.back()[1], occupiedIntervals[i][1]);
+        else
+            merged.push_back(occupiedIntervals[i]);
+    }
+    vector<vector<int>> result;
+    for (auto& iv : merged) {
+        int s = iv[0], e = iv[1];
+        if (s < freeStart)
+            result.push_back({s, min(e, freeStart - 1)});
+        if (e > freeEnd)
+            result.push_back({max(s, freeEnd + 1), e});
+    }
+    return result;
+}
+\`\`\`
+
+# Complexity
+- Time: $O(n \\log n)$
+- Space: $O(n)$
 `,"../dsa-notes/Arrays/Find All Anagrams in A String.md":`---
 difficulty: Medium
 topics:
@@ -1054,35 +1109,172 @@ bool isValidBST(TreeNode* root) {
 }
 \`\`\`
 
-Prev needs to be passed by reference so that the value of previous can backpropagate. Not passing it by reference will make copies and it wont backpropagate.`,"../dsa-notes/Backtracking/Combination Sum.md":`---
+Prev needs to be passed by reference so that the value of previous can backpropagate. Not passing it by reference will make copies and it wont backpropagate.`,"../dsa-notes/Backtracking/Combination Sum II.md":`---
 difficulty: Medium
-topics: ["Backtracking"]
+topics:
+  - Backtracking
+  - Arrays
 source: Leetcode
 star: false
-link: "https://leetcode.com/problems/combination-sum/description/"
+link: https://leetcode.com/problems/combination-sum-ii/
+date: 2026-06-30
 ---
 
-[[Backtracking]]
+[[Backtracking]] [[Arrays]]
 
+# Problem
+Given array \`candidates\` (may have duplicates) and a \`target\`, return all unique combinations that sum to target. Each element can be used at most once.
+
+# Approach
+## Loop Backtracking with Duplicate Pruning
+Sort first. At each level, iterate from \`idx\` forward. Skip element if it's the same value as the previous sibling at this level (\`i > idx && candidates[i] == candidates[i-1]\`): this prevents duplicate combinations without needing a set.
+
+Early break when \`candidates[i] + sum > target\` (sorted, so all further elements also too large).
+
+Differs from [[Combination Sum]]: include branch advances to \`i+1\` (no reuse), and needs the sibling-dedup check.
+
+Trap: using \`set<vector<int>>\` to deduplicate causes TLE: explores all duplicate paths before discarding. Prune at source instead.
+
+### Code
 \`\`\`cpp
-	vector<vector<int>> ans;
-    void combine(vector<int>& candidates, vector<int> &sol, int idx, int target){
-        if(target == 0) {ans.push_back(sol); return;}
-        if(target < 0 || idx >= candidates.size())
-            return;
-        
-        sol.push_back(candidates[idx]);
-        combine(candidates, sol, idx, target - candidates[idx]);
-        sol.pop_back();
-        combine(candidates, sol, idx+1, target);
+void solve(vector<vector<int>>& ans, vector<int>& curr,
+           vector<int>& candidates, int idx, int target, int sum) {
+    if (sum == target) { ans.push_back(curr); return; }
+    for (int i = idx; i < candidates.size(); i++) {
+        if (candidates[i] + sum > target) break;
+        if (i > idx && candidates[i] == candidates[i-1]) continue;
+        curr.push_back(candidates[i]);
+        solve(ans, curr, candidates, i+1, target, sum + candidates[i]);
+        curr.pop_back();
     }
+}
 
-    vector<vector<int>> combinationSum(vector<int>& candidates, int target) {
-        vector<int> sol;
-        combine(candidates, sol, 0, target);
-        return ans;
-    }
+vector<vector<int>> combinationSum2(vector<int>& candidates, int target) {
+    vector<vector<int>> ans;
+    vector<int> curr;
+    sort(candidates.begin(), candidates.end());
+    solve(ans, curr, candidates, 0, target, 0);
+    return ans;
+}
 \`\`\`
+
+### Complexity
+- Time: $O(2^n)$ worst case
+- Space: $O(n)$ recursion depth
+`,"../dsa-notes/Backtracking/Combination Sum.md":`---
+difficulty: Medium
+topics:
+  - Backtracking
+  - Arrays
+source: Leetcode
+star: false
+link: https://leetcode.com/problems/combination-sum/
+date: 2026-06-30
+---
+
+[[Backtracking]] [[Arrays]]
+
+# Problem
+Given array of distinct integers \`candidates\` and a \`target\`, return all unique combinations that sum to target. Each candidate can be used unlimited times.
+
+# Approach
+## Include/Exclude Backtracking
+At each index: skip it (move to idx+1) or take it (stay at idx: allows reuse). Recurse until sum hits target or exceeds it.
+
+Key: include branch stays at same \`idx\`, not \`idx+1\`. Moving forward would prevent reuse.
+
+### Code
+\`\`\`cpp
+void solve(vector<vector<int>>& ans, vector<int>& curr,
+           vector<int>& candidates, int idx, int target, int sum) {
+    if (sum == target) { ans.push_back(curr); return; }
+    if (sum > target || idx == candidates.size()) return;
+
+    solve(ans, curr, candidates, idx+1, target, sum);                 // exclude
+    curr.push_back(candidates[idx]);
+    solve(ans, curr, candidates, idx, target, sum + candidates[idx]); // include (reuse allowed)
+    curr.pop_back();
+}
+
+vector<vector<int>> combinationSum(vector<int>& candidates, int target) {
+    vector<vector<int>> ans;
+    vector<int> curr;
+    solve(ans, curr, candidates, 0, target, 0);
+    return ans;
+}
+\`\`\`
+
+### Complexity
+- Time: $O(2^{t/m})$ where $t$ = target, $m$ = smallest candidate
+- Space: $O(t/m)$ recursion depth
+`,"../dsa-notes/Backtracking/Subsets.md":`---
+difficulty: Medium
+topics:
+  - Backtracking
+  - Arrays
+source: Leetcode
+star: false
+link: https://leetcode.com/problems/subsets/
+date: 2026-06-30
+---
+
+[[Backtracking]] [[Arrays]]
+
+# Problem
+Given integer array \`nums\` of unique elements, return all possible subsets (power set).
+
+# Approach
+## Include/Exclude Backtracking
+At each index, two choices: skip element or include it. Recurse both paths. Base case: index reaches end, push current subset.
+
+Pass \`curr\` by reference with pop_back to undo after include branch.
+
+Trap: passing \`{}\` literal as \`vector<int>&\` won't compile: declare named variable first.
+
+### Code
+\`\`\`cpp
+void solve(vector<vector<int>>& ans, vector<int>& curr, vector<int>& nums, int idx) {
+    if (idx == nums.size()) { ans.push_back(curr); return; }
+    solve(ans, curr, nums, idx+1);          // exclude
+    curr.push_back(nums[idx]);
+    solve(ans, curr, nums, idx+1);          // include
+    curr.pop_back();
+}
+
+vector<vector<int>> subsets(vector<int>& nums) {
+    vector<vector<int>> ans;
+    vector<int> curr;
+    solve(ans, curr, nums, 0);
+    return ans;
+}
+\`\`\`
+
+### Complexity
+- Time: $O(2^n)$
+- Space: $O(n)$ recursion stack
+
+## Iterative (Cascade)
+Start with \`{{}}\`. For each number, duplicate all existing subsets and append the number to each copy. No recursion, no backtracking.
+
+### Code
+\`\`\`cpp
+vector<vector<int>> subsets(vector<int>& nums) {
+    vector<vector<int>> ans = {{}};
+    for (int n : nums) {
+        int sz = ans.size();
+        for (int i = 0; i < sz; i++) {
+            auto sub = ans[i];
+            sub.push_back(n);
+            ans.push_back(sub);
+        }
+    }
+    return ans;
+}
+\`\`\`
+
+### Complexity
+- Time: $O(2^n)$
+- Space: $O(2^n)$ output only, no recursion stack
 `,"../dsa-notes/Backtracking/Word Search.md":`---
 difficulty: Medium
 topics: ["Backtracking"]
@@ -1722,42 +1914,7 @@ int deleteAndEarn(vector<int> &nums)
 
     return max(t1, t2);
 }
-\`\`\``,"../dsa-notes/Dynamic Programming/Diameter of Tree.md":`---
-difficulty: Easy
-topics: ["Recursion", "Dynamic Programming"]
-source: Standard
-star: false
----
-
-[[Recursion]] [[Dynamic Programming]]
-
-# Problem
-The diameter of a tree (sometimes called the width) is the number of nodes on the longest path between two end nodes. The diagram below shows two trees each with diameter nine, the leaves that form the ends of the longest path are shaded (note that there is more than one path in each tree of length nine, but no path longer than nine nodes).
-
-# Solution
-
-The diameter can either pass through a node and move up, or it can be the left subtree + right subtree + node
-
-\`\`\`cpp
-int solve(Node* root, int &res){
-    if(root == NULL)
-        return 0;
-    int left = solve(root->left, res);
-    int right = solve(root->right, res);
-    int temp = max(left, right) + 1;
-    int ans = right + left + 1;
-    res = max(res, ans);
-    return temp;
-}
-
-int diameter(Node* root) {
-    // Your code here
-    int res = 0;
-    int temp = solve(root, res);
-    return res;
-}
-\`\`\`
-`,"../dsa-notes/Dynamic Programming/Distinct Subsequences.md":`---
+\`\`\``,"../dsa-notes/Dynamic Programming/Distinct Subsequences.md":`---
 difficulty: Hard
 topics: ["Dynamic Programming"]
 source: Leetcode
@@ -2406,6 +2563,63 @@ int findMaxSum(Node* root)
 }
 \`\`\`
 
+`,"../dsa-notes/Dynamic Programming/Maximum Subarray Sum After Multiplier.md":`---
+difficulty: Hard
+topics:
+  - Dynamic Programming
+  - Arrays
+source: Leetcode
+star: false
+link: https://leetcode.com/contest/weekly-contest-508/problems/maximum-subarray-sum-after-multiplier/
+date: 2026-06-28
+---
+
+[[Dynamic Programming]] [[Arrays]]
+
+# Problem
+Given \`nums\` and \`k\`, choose one subarray and either multiply every element by \`k\` or divide (floor for positive, ceil for negative). Return max possible subarray sum in the resulting array. The operation subarray and sum subarray can differ.
+
+# Approach
+## 3-State Kadane's (Two Runs)
+
+The operation subarray is only useful if it overlaps the sum subarray. So the sum subarray has three regions: unscaled prefix, scaled middle, unscaled suffix.
+
+Run 3-state Kadane's twice: once for multiply (\`sv = v*k\`), once for divide (\`sv = v/k\`, C++ truncation gives floor for positive and ceil for negative automatically).
+
+Three states at each position, tracking max sum of subarray ending here:
+- \`pre\`: no scaling yet (standard Kadane's)
+- \`mid\`: current element is scaled (enter from \`pre\`, extend \`mid\`, or start fresh scaled)
+- \`post\`: exited scaling zone, back to normal (enter from \`mid\` or extend \`post\`)
+
+Use old values for transitions: save \`pre\` and \`mid\` before updating.
+
+# Code
+\`\`\`cpp
+long long maxSubarraySum(vector<int>& nums, int k) {
+    int n = nums.size();
+    long long ans = LLONG_MIN;
+    for (int t = 0; t < 2; t++) {
+        long long pre  = nums[0];
+        long long mid  = (t == 0) ? (long long)nums[0] * k : nums[0] / k;
+        long long post = LLONG_MIN / 2;
+        ans = max({ans, pre, mid});
+        for (int i = 1; i < n; i++) {
+            long long v = nums[i];
+            long long sv = (t == 0) ? v * k : v / k;
+            long long oldPre = pre, oldMid = mid;
+            pre  = max(pre + v, v);
+            mid  = max({oldMid + sv, oldPre + sv, sv});
+            post = max(post + v, oldMid + v);
+            ans  = max({ans, pre, mid, post});
+        }
+    }
+    return ans;
+}
+\`\`\`
+
+# Complexity
+- Time: $O(n)$
+- Space: $O(1)$
 `,"../dsa-notes/Dynamic Programming/Min Cost Climbing Stairs.md":`---
 difficulty: Easy
 topics: ["Dynamic Programming"]
@@ -4205,6 +4419,64 @@ int spanningTree(int V, vector<vector<int>> adj[])
 
 ### Kruskal's Algorithm
 [[Kruskal's Algorithm]]
+`,"../dsa-notes/Graphs/Minimum Time to Reach Target with Limited Power.md":`---
+difficulty: Hard
+topics:
+  - Dijkstra
+  - Graphs
+source: Leetcode
+star: false
+link: https://leetcode.com/contest/weekly-contest-508/problems/minimum-time-to-reach-target-with-limited-power/
+date: 2026-06-28
+---
+
+[[Dijkstra]] [[Graphs]]
+
+# Problem
+Directed weighted graph. Signal starts at source with given power. Can only traverse edge from node \`u\` if \`remaining_power >= cost[u]\`; traversal deducts \`cost[u]\`. Find minimum time to reach target. Among all min-time paths, return max remaining power.
+
+# Approach
+## Dijkstra on \`(node, remaining_power)\` State
+
+State is \`(node, remaining_power)\` not just \`node\`: same node with different power levels can reach different neighbors. State space: $n \\times P = 10^6$, manageable.
+
+Priority queue ordered by \`(time ASC, -power)\`: secondary \`-power\` ensures first pop of target gives both min time and max remaining power simultaneously.
+
+\`dist[node][power]\` = min time to reach that state. Skip if stale or \`pw < cost[node]\`.
+
+# Code
+\`\`\`cpp
+vector<long long> minTimeMaxPower(int n, vector<vector<int>>& edges, int power, vector<int>& cost, int source, int target) {
+    if (source == target) return {0, (long long)power};
+    vector<vector<pair<int,int>>> adj(n);
+    for (auto& e : edges) adj[e[0]].push_back({e[1], e[2]});
+    vector<vector<long long>> dist(n, vector<long long>(power + 1, LLONG_MAX));
+    priority_queue<tuple<long long,int,int,int>,
+                   vector<tuple<long long,int,int,int>>,
+                   greater<>> pq;
+    dist[source][power] = 0;
+    pq.push({0, -power, source, power});
+    while (!pq.empty()) {
+        auto [t, npw, node, pw] = pq.top(); pq.pop();
+        if (node == target) return {t, (long long)pw};
+        if (t > dist[node][pw]) continue;
+        if (pw < cost[node]) continue;
+        int newpw = pw - cost[node];
+        for (auto [v, w] : adj[node]) {
+            long long newt = t + w;
+            if (newt < dist[v][newpw]) {
+                dist[v][newpw] = newt;
+                pq.push({newt, -newpw, v, newpw});
+            }
+        }
+    }
+    return {-1, -1};
+}
+\`\`\`
+
+# Complexity
+- Time: $O((n \\cdot P + E) \\log(n \\cdot P))$ where $P$ = initial power, $E$ = edges
+- Space: $O(n \\cdot P)$
 `,"../dsa-notes/Graphs/N-ary Tree Level Order Traversal.md":`---
 difficulty: Medium
 topics: ["Trees", "Graphs"]
@@ -5472,7 +5744,49 @@ code: CodeForces/A_Elephant.cpp
 [[CodeForces/A_Elephant.cpp]]
 [[Greedy]] [[Math]]
 
-[Problem - 617A - Codeforces](https://codeforces.com/problemset/problem/617/A) #  # - count for 5 first then 4 then 3 then 2 then 1 and add them`,"../dsa-notes/Greedy/Maximum Length of Pair Chain.md":'---\ndifficulty: Medium\ntopics: ["Greedy", "Dynamic Programming"]\nsource: Leetcode\nstar: true\nlink: "https://leetcode.com/problems/maximum-length-of-pair-chain/"\n---\n\n[[Greedy]] [[Dynamic Programming]]\n\n# Problem\nYou are given an array of\xA0`n`\xA0pairs\xA0`pairs`\xA0where\xA0`pairs[i] = [lefti, righti]`\xA0and\xA0`lefti < righti`.\n\nA pair\xA0`p2 = [c, d]`\xA0**follows**\xA0a pair\xA0`p1 = [a, b]`\xA0if\xA0`b < c`. A\xA0**chain**\xA0of pairs can be formed in this fashion.\n\nReturn\xA0_the length longest chain which can be formed_.\n\nYou do not need to use up all the given intervals. You can select pairs in any order.\n\n# Solution\n1.  Programming\n	The dynamic programming solution is very similar to the [[Longest Increasing Subsequence]] solution. Here the only difference is that we first need to sort the pairs array to avoid missing out any pair as it allows rearranging the array.\n```cpp\nint findLongestChain(vector<vector<int>> &pairs)\n{\n	int n = pairs.size();\n	int max_length = 1;\n	sort(pairs.begin(), pairs.end());\n	vector<int> t(n, 1);\n	for (int i = n - 1; i >= 0; i--)\n	{\n		for (int j = i + 1; j < n; j++)\n		{\n			if (pairs[j][0] > pairs[i][1])\n			{\n				t[i] = max(t[i], 1 + t[j]);\n			}\n		}\n		max_length = max(max_length, t[i]);\n	}\n	return max_length;\n}\n```\n\n2. \n	In the greedy solution we use sorting to find an optimal answer. If we sort the pairs array based on the first element then we won\'t get a meaningful answer, but if we sort according to the second element we will get a way to find the answer. \n	Consider\xA0`pairA`\xA0and\xA0`pairB`, where\xA0`pairA`\xA0appears before\xA0`pairB`\xA0in the sorted pairs based on the second element. We want to figure out if it is always correct to pick\xA0`pairA`\xA0first if it comes before any other pair\xA0`pairB`.\n\n	Since\xA0`pairA`\xA0comes before\xA0`pairB`\xA0in the sorted list, it implies that\xA0`pairA[1] <= pairB[1]`. There are no guarantees on\xA0`pairA[0]`\xA0and\xA0`pairB[0]`.\n	\n	Now, if\xA0`pairA[1] < pairB[0]`, it\'s obvious that we should append\xA0`pairA`\xA0first. This is because after picking\xA0`pairA`\xA0we can still pick\xA0`pairB`.\n	\n	When\xA0`pairA[1] >= pairB[0]`, we have to choose carefully. It means that either we only append\xA0`pairA`\xA0to the chain, or we only append\xA0`pairB`\xA0to the chain. Appending either\xA0`pairA`\xA0or\xA0`pairB`\xA0will increment the length of the chain by\xA0`1`\xA0but will affect the next pair we can pick.\n	\n	The tail of the current chain would be\xA0`pairA[1]`\xA0if we choose\xA0`pairA`\xA0and would be\xA0`pairB[1]`\xA0if choose\xA0`pairB`. Since\xA0`pairA[1] < pairB[1]`\xA0(due to sorting), it is better to choose\xA0`pairA`\xA0first because that way we expose a smaller tail which has a better opportunity to append more future pairs.\n```cpp\nint findLongestChain(vector<vector<int>> &pairs)\n{\n    sort(pairs.begin(), pairs.end(), [](vector<int> a, vector<int> b)\n         { return a[1] < b[1]; });\n\n    int n = pairs.size();\n    int max_length = 0;\n    int prev = INT32_MIN;\n    for (int i = 0; i < n; i++)\n    {\n        if (pairs[i][0] > prev)\n        {\n            max_length++;\n            prev = pairs[i][1];\n        }\n    }\n\n    return max_length;\n}\n```',"../dsa-notes/Greedy/Smallest Range II.md":`---
+[Problem - 617A - Codeforces](https://codeforces.com/problemset/problem/617/A) #  # - count for 5 first then 4 then 3 then 2 then 1 and add them`,"../dsa-notes/Greedy/Maximum Length of Pair Chain.md":'---\ndifficulty: Medium\ntopics: ["Greedy", "Dynamic Programming"]\nsource: Leetcode\nstar: true\nlink: "https://leetcode.com/problems/maximum-length-of-pair-chain/"\n---\n\n[[Greedy]] [[Dynamic Programming]]\n\n# Problem\nYou are given an array of\xA0`n`\xA0pairs\xA0`pairs`\xA0where\xA0`pairs[i] = [lefti, righti]`\xA0and\xA0`lefti < righti`.\n\nA pair\xA0`p2 = [c, d]`\xA0**follows**\xA0a pair\xA0`p1 = [a, b]`\xA0if\xA0`b < c`. A\xA0**chain**\xA0of pairs can be formed in this fashion.\n\nReturn\xA0_the length longest chain which can be formed_.\n\nYou do not need to use up all the given intervals. You can select pairs in any order.\n\n# Solution\n1.  Programming\n	The dynamic programming solution is very similar to the [[Longest Increasing Subsequence]] solution. Here the only difference is that we first need to sort the pairs array to avoid missing out any pair as it allows rearranging the array.\n```cpp\nint findLongestChain(vector<vector<int>> &pairs)\n{\n	int n = pairs.size();\n	int max_length = 1;\n	sort(pairs.begin(), pairs.end());\n	vector<int> t(n, 1);\n	for (int i = n - 1; i >= 0; i--)\n	{\n		for (int j = i + 1; j < n; j++)\n		{\n			if (pairs[j][0] > pairs[i][1])\n			{\n				t[i] = max(t[i], 1 + t[j]);\n			}\n		}\n		max_length = max(max_length, t[i]);\n	}\n	return max_length;\n}\n```\n\n2. \n	In the greedy solution we use sorting to find an optimal answer. If we sort the pairs array based on the first element then we won\'t get a meaningful answer, but if we sort according to the second element we will get a way to find the answer. \n	Consider\xA0`pairA`\xA0and\xA0`pairB`, where\xA0`pairA`\xA0appears before\xA0`pairB`\xA0in the sorted pairs based on the second element. We want to figure out if it is always correct to pick\xA0`pairA`\xA0first if it comes before any other pair\xA0`pairB`.\n\n	Since\xA0`pairA`\xA0comes before\xA0`pairB`\xA0in the sorted list, it implies that\xA0`pairA[1] <= pairB[1]`. There are no guarantees on\xA0`pairA[0]`\xA0and\xA0`pairB[0]`.\n	\n	Now, if\xA0`pairA[1] < pairB[0]`, it\'s obvious that we should append\xA0`pairA`\xA0first. This is because after picking\xA0`pairA`\xA0we can still pick\xA0`pairB`.\n	\n	When\xA0`pairA[1] >= pairB[0]`, we have to choose carefully. It means that either we only append\xA0`pairA`\xA0to the chain, or we only append\xA0`pairB`\xA0to the chain. Appending either\xA0`pairA`\xA0or\xA0`pairB`\xA0will increment the length of the chain by\xA0`1`\xA0but will affect the next pair we can pick.\n	\n	The tail of the current chain would be\xA0`pairA[1]`\xA0if we choose\xA0`pairA`\xA0and would be\xA0`pairB[1]`\xA0if choose\xA0`pairB`. Since\xA0`pairA[1] < pairB[1]`\xA0(due to sorting), it is better to choose\xA0`pairA`\xA0first because that way we expose a smaller tail which has a better opportunity to append more future pairs.\n```cpp\nint findLongestChain(vector<vector<int>> &pairs)\n{\n    sort(pairs.begin(), pairs.end(), [](vector<int> a, vector<int> b)\n         { return a[1] < b[1]; });\n\n    int n = pairs.size();\n    int max_length = 0;\n    int prev = INT32_MIN;\n    for (int i = 0; i < n; i++)\n    {\n        if (pairs[i][0] > prev)\n        {\n            max_length++;\n            prev = pairs[i][1];\n        }\n    }\n\n    return max_length;\n}\n```',"../dsa-notes/Greedy/Maximum Total Sum of K Selected Elements.md":`---
+difficulty: Medium
+topics:
+  - Greedy
+  - Arrays
+  - Sorting
+source: Leetcode
+star: false
+link: https://leetcode.com/contest/weekly-contest-508/problems/maximum-total-sum-of-k-selected-elements/
+date: 2026-06-28
+---
+
+[[Greedy]] [[Arrays]] [[Sorting]]
+
+# Problem
+Given \`nums\`, select \`k\` elements and process one by one. For each, either add its value or multiply by current \`mul\` (then \`mul\` decreases by 1). Return max possible total sum. Constraint: \`nums[i] >= 1\`.
+
+# Approach
+## Greedy: Sort and Take k Largest
+
+Sort, take \`k\` largest elements. For each, multiply if \`mul > 1\` (guaranteed better for positive nums), else add. Apply highest multiplier to largest element first by iterating from end.
+
+Cast to \`long long\` before multiply: \`int * int\` overflows for large \`nums[i]\` and \`mul\`.
+
+# Code
+\`\`\`cpp
+long long maxSum(vector<int>& nums, int k, int mul) {
+    sort(nums.begin(), nums.end());
+    int n = nums.size() - 1;
+    long long sum = 0;
+    while (k--) {
+        sum += mul > 1 ? (long long)nums[n] * mul : nums[n];
+        n--;
+        mul--;
+    }
+    return sum;
+}
+\`\`\`
+
+# Complexity
+- Time: $O(n \\log n)$
+- Space: $O(1)$
+`,"../dsa-notes/Greedy/Smallest Range II.md":`---
 difficulty: Medium
 topics: ["Greedy"]
 source: Leetcode
@@ -6081,6 +6395,69 @@ ListNode *getIntersectionNode(ListNode *headA, ListNode *headB)
     return headA;
 }
 \`\`\`
+`,"../dsa-notes/Linked Lists/LRU Cache.md":`---
+difficulty: Medium
+topics:
+  - Linked Lists
+  - Hash Maps
+source: Leetcode
+star: false
+link: https://leetcode.com/problems/lru-cache/
+date: 2026-06-28
+---
+
+[[Linked Lists]] [[Hash Maps]]
+
+# Problem
+Design a data structure for LRU (Least Recently Used) cache with \`get(key)\` and \`put(key, value)\` : both O(1). Evict least recently used key when over capacity.
+
+# Approach
+## Doubly Linked List + HashMap
+\`list\` in \`cpp\` is the same as a doubly linked list.
+
+\`list<int>\` acts as usage order: front = LRU, back = MRU. HashMap stores \`key → {value, iterator}\` for O(1) access and O(1) splice. On any access, erase the key's node from its current position and push to back. On eviction, pop front.
+
+Key insight: \`std::list\` iterators stay valid after \`erase\` on other nodes, safe to store them in the map permanently (only invalidated on their own erase).
+
+### Code
+\`\`\`cpp
+class LRUCache {
+private:
+    int capacity;
+    unordered_map<int, pair<int, list<int>::iterator>> mp;
+    list<int> order;
+
+public:
+    LRUCache(int capacity) { this->capacity = capacity; }
+
+    int get(int key) {
+        if (mp.find(key) == mp.end())
+            return -1;
+
+        order.erase(mp[key].second);
+        order.push_back(key);
+        mp[key].second = --order.end();
+        return mp[key].first;
+    }
+
+    void put(int key, int value) {
+        if (mp.find(key) != mp.end())
+            order.erase(mp[key].second);
+        else if (mp.size() == capacity) {
+            int lru = order.front();
+            order.pop_front();
+            mp.erase(lru);
+        }
+
+        order.push_back(key);
+        mp[key] = {value, --order.end()};
+    }
+};
+\`\`\`
+
+### Complexity
+- Time: O(1) for both \`get\` and \`put\`
+- Space: O(capacity)
 `,"../dsa-notes/Linked Lists/Linked List Cycle.md":`---
 difficulty: Easy
 topics: ["Linked Lists", "Two Pointers"]
@@ -6356,6 +6733,67 @@ ListNode* reverseList(ListNode* head) {
 	return newHead;
 }
 \`\`\`
+`,"../dsa-notes/Linked Lists/Reverse Nodes in K Group.md":`---
+difficulty: Hard
+topics:
+  - Linked Lists
+  - Recursion
+source: Leetcode
+star: true
+link: https://leetcode.com/problems/reverse-nodes-in-k-group/
+date: 2026-06-28
+---
+
+[[Linked Lists]] [[Recursion]]
+
+# Problem
+Given head of a linked list, reverse every k nodes. If remaining nodes < k, leave them as-is.
+
+# Approach
+## Recursive Reversal in Chunks
+
+Recursively reverse the list in chunks of k. Use a fast pointer to check k nodes exist: if not, return head unchanged.
+
+For the reversal: \`dummy\` trails the current node being reversed, \`slow\` trails behind it (starts at \`nullptr\`). After reversing k nodes with \`while(n--)\`, the original head becomes the new tail and \`slow\` becomes the new head of the reversed chunk.
+
+Recurse on \`dummy\` (first node of next chunk). The recursive call returns the new head of the remaining list, attach it to \`dummy\` (old head, now tail). Return \`slow\` (new head of this chunk).
+
+### Code
+\`\`\`cpp
+class Solution {
+public:
+    ListNode* reverseKGroup(ListNode* head, int k) {
+        if(!head) return nullptr;
+        ListNode* fast = head;
+
+        int n = 0;
+        while(n < k && fast) {
+            fast = fast->next;
+            n++;
+        }
+
+        if(n < k) return head;
+
+        ListNode* dummy = head;
+        ListNode* slow = nullptr;
+
+        while(n--) {
+            ListNode* temp = dummy->next;
+            dummy->next = slow;
+            slow = dummy;
+            dummy = temp;
+        }
+
+        dummy = reverseKGroup(dummy, k);
+        head->next = dummy;
+        return slow;
+    }
+};
+\`\`\`
+
+### Complexity
+- Time: $O(n)$
+- Space: $O(n/k)$ recursion stack
 `,"../dsa-notes/Math/Beautiful Year.md":`---
 difficulty: Easy
 topics: ["Math"]
@@ -7616,112 +8054,501 @@ int main()
     return 0;
 }
 \`\`\`
-`,"../dsa-notes/Trees/Binary Tree Level Order Traversal.md":`---
-difficulty: Medium
-topics: ["Trees"]
+`,"../dsa-notes/Trees/Balanced Binary Tree.md":`---
+difficulty: Easy
+topics:
+  - Trees
+  - DFS
+  - Recursion
 source: Leetcode
 star: false
-link: "https://leetcode.com/problems/binary-tree-level-order-traversal/description/"
-code: LeetCode/binary_tree_level_order_traversal.cpp
+link: https://leetcode.com/problems/balanced-binary-tree/
+date: 2026-06-28
 ---
-[[LeetCode/binary_tree_level_order_traversal.cpp]]
-[[Trees]]
 
-Maintain an array of each level and push the array to the ans array
+[[Trees]] [[DFS]] [[Recursion]]
+
+# Problem
+Given a binary tree, determine if it is height-balanced: every node's left and right subtree heights differ by at most 1.
+
+# Approach
+## Single-Pass DFS (bool ref)
+Compute height bottom-up. Pass a \`bool& bal\` ref: only ever flip to \`false\`, never back to \`true\`. If any node is unbalanced, \`bal\` stays false all the way up.
+
+Brute force mistake: calling \`height()\` separately then recursing \`isBalanced()\` = O(n²). Fix: combine both in one DFS.
+
+Key invariant: \`bal\` starts \`true\`, only \`> 1\` diff sets it \`false\`. Never reset to \`true\` at a balanced node: that would clobber earlier \`false\`.
+
+### Code
 \`\`\`cpp
-vector<vector<int>> levelOrder(TreeNode* root) {
-	vector<vector<int>> ans;
-	if(!root) return ans;
+int height(TreeNode* root, bool& bal) {
+    if (!root)
+        return 0;
+    int lHeight = height(root->left, bal);
+    int rHeight = height(root->right, bal);
 
-	queue<TreeNode*> q;
-	q.push(root);
+    if (abs(lHeight - rHeight) > 1)
+        bal = false;
 
-	while(!q.empty()){
-		int n = q.size();
-		vector<int> curr;
+    return max(lHeight, rHeight) + 1;
+}
 
-		while(n--) {
-			TreeNode* node = q.front(); q.pop();
-			curr.push_back(node->val);
-			if(node->left) q.push(node->left);
-			if(node->right) q.push(node->right);
-		}
-
-		ans.push_back(curr);
-	}
-
-	return ans;
+bool isBalanced(TreeNode* root) {
+    if (!root)
+        return true;
+    bool bal = true;
+    height(root, bal);
+    return bal;
 }
 \`\`\`
-`,"../dsa-notes/Trees/Binary Tree Maximum Path Sum.md":`---
-difficulty: Hard
-topics: ["Trees"]
+
+### Complexity
+- Time: $O(n)$
+- Space: $O(h)$: recursion stack
+
+## Sentinel Value (-1)
+Return -1 if subtree unbalanced, else height. Short-circuits early: stops recursing as soon as imbalance found.
+
+### Code
+\`\`\`cpp
+int dfs(TreeNode* root) {
+    if (!root) return 0;
+    int left = dfs(root->left);
+    if (left == -1) return -1;
+    int right = dfs(root->right);
+    if (right == -1) return -1;
+    if (abs(left - right) > 1) return -1;
+    return max(left, right) + 1;
+}
+
+bool isBalanced(TreeNode* root) {
+    return dfs(root) != -1;
+}
+\`\`\`
+
+### Complexity
+- Time: $O(n)$
+- Space: $O(h)$
+`,"../dsa-notes/Trees/Binary Tree Level Order Traversal.md":`---
+difficulty: Medium
+topics:
+  - Trees
+  - BFS
 source: Leetcode
 star: false
-link: "https://leetcode.com/problems/binary-tree-maximum-path-sum/description/"
+link: https://leetcode.com/problems/binary-tree-level-order-traversal/
+date: 2026-06-28
 ---
 
-[[Trees]]
+[[Trees]] [[BFS]]
 
-For each node we track two things ->
+# Problem
+Return the level-order traversal of a binary tree's values as a 2D array (each level as a subarray).
 
-### Gain
-The maximum sum you can get if you continue upwards, eg -> left child + current. we cant include right in this as that would not be a path upward.
+# Approach
+## BFS with Level Size Snapshot
+Snapshot \`q.size()\` at start of each level: that's exactly how many nodes belong to current level. Process exactly that many, then save level and continue.
 
-### Path
-The maximum possible sum at the current node -> left + right + current. This is what we return.
-
+### Code
 \`\`\`cpp
-int path(TreeNode* root, int &c){
-	if(!root) return 0;
+vector<vector<int>> levelOrder(TreeNode* root) {
+    vector<vector<int>> ans;
+    if (!root) return ans;
+    queue<TreeNode*> mq;
+    mq.push(root);
+    while (!mq.empty()) {
+        int n = mq.size();
+        vector<int> lv;
+        while (n--) {
+            TreeNode* curr = mq.front(); mq.pop();
+            lv.push_back(curr->val);
+            if (curr->left)  mq.push(curr->left);
+            if (curr->right) mq.push(curr->right);
+        }
+        ans.push_back(lv);
+    }
+    return ans;
+}
+\`\`\`
 
-	int left = max(0,path(root->left, c));
-	int right = max(0,path(root->right, c));
-	c = max(root->val + left + right, c);
-	return max(left, right) + root->val;
+### Complexity
+- Time: $O(n)$
+- Space: $O(n)$: queue holds at most one full level
+`,"../dsa-notes/Trees/Binary Tree Maximum Path Sum.md":`---
+difficulty: Hard
+topics:
+  - Trees
+  - DFS
+  - Recursion
+source: Leetcode
+star: false
+link: https://leetcode.com/problems/binary-tree-maximum-path-sum/
+date: 2026-06-29
+---
+
+[[Trees]] [[DFS]] [[Recursion]]
+
+# Problem
+Given root of a binary tree, return the maximum path sum. Path can start and end at any node; does not need to pass through root.
+
+# Approach
+## DFS with Global Max
+Same structure as [[Diameter of Binary Tree]]: at each node, compute best path through it using both arms, update global max, return best single arm to parent.
+
+Key difference from diameter: values can be negative. Clamp each subtree gain to 0 before using it: never extend into a negative subtree.
+
+At each node:
+- \`l = max(0, gain from left)\`
+- \`r = max(0, gain from right)\`
+- Path through node: \`l + root->val + r\`: update global max
+- Return to parent: \`max(l, r) + root->val\`: single arm only
+
+### Code
+\`\`\`cpp
+int path(TreeNode* root, int& res) {
+    if (!root) return 0;
+    int l = path(root->left, res);
+    l = l > 0 ? l : 0;
+    int r = path(root->right, res);
+    r = r > 0 ? r : 0;
+    res = max(res, l + r + root->val);
+    return max(l, r) + root->val;
 }
 
 int maxPathSum(TreeNode* root) {
-	int c = INT_MIN;
-	path(root, c);
-	return c;
+    int res = INT_MIN;
+    path(root, res);
+    return res;
 }
 \`\`\`
-`,"../dsa-notes/Trees/Construct Binary Tree from Preorder and Inorder Traversal.md":`---
+
+### Complexity
+- Time: $O(n)$
+- Space: $O(h)$ recursion stack
+`,"../dsa-notes/Trees/Binary Tree Right Side View.md":`---
 difficulty: Medium
-topics: ["Trees"]
+topics:
+  - Trees
+  - BFS
 source: Leetcode
 star: false
-link: "https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/description/"
+link: https://leetcode.com/problems/binary-tree-right-side-view/
+date: 2026-06-28
 ---
 
-[[Trees]]
+[[Trees]] [[BFS]]
 
-The first element of the preorder traversal is always the root node. The inorder traversal splits the bst into two halves - left and right.
+# Problem
+Given root of a binary tree, return the values visible from the right side (rightmost node at each level).
 
+# Approach
+## BFS Level Order: Last Node Per Level
+Standard level-order BFS with size snapshot. At each level, only push the last node's value (\`n == 0\` after decrement).
+
+Trap: don't use \`q.empty()\` to detect last node, children already pushed before queue drains, so it's never empty at the right moment.
+
+### Code
 \`\`\`cpp
-unordered_map<int, int> inorderIdx;
-    int preIdx;
+vector<int> rightSideView(TreeNode* root) {
+    vector<int> ans;
+    if (!root) return ans;
+    queue<TreeNode*> q;
+    q.push(root);
+    while (!q.empty()) {
+        int n = q.size();
+        while (n--) {
+            TreeNode* node = q.front(); q.pop();
+            if (n == 0) ans.push_back(node->val);
+            if (node->left)  q.push(node->left);
+            if (node->right) q.push(node->right);
+        }
+    }
+    return ans;
+}
+\`\`\`
 
-    TreeNode* dfs(vector<int> &preorder, int left, int right){
-        if(preorder.empty() || left > right) return nullptr;
+### Complexity
+- Time: $O(n)$
+- Space: $O(n)$ queue holds at most one full level
+`,"../dsa-notes/Trees/Construct Binary Tree from Preorder and Inorder Traversal.md":`---
+difficulty: Medium
+topics:
+  - Trees
+  - DFS
+  - Recursion
+source: Leetcode
+star: false
+link: https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/
+date: 2026-06-29
+---
 
-        int mid = inorderIdx[preorder[preIdx]];
-        TreeNode* root = new TreeNode(preorder[preIdx++]);
-        root->left = dfs(preorder, left, mid -1);
-        root->right = dfs(preorder, mid + 1, right);
+[[Trees]] [[DFS]] [[Recursion]]
 
+# Problem
+Given preorder and inorder traversal arrays of a binary tree, reconstruct the tree.
+
+# Approach
+## Naive Slice (O(n²))
+Same recursive split but copy vector slices at each level. \`idx\` = root's position in inorder = left subtree size. Use that to slice both arrays. Passing temporaries to \`vector<int>&\` won't compile: store slices in named variables first.
+
+### Code
+\`\`\`cpp
+TreeNode* buildTree(vector<int>& preorder, vector<int>& inorder) {
+    if (preorder.size() == 0 || inorder.size() == 0) return nullptr;
+    TreeNode* root = new TreeNode(preorder[0]);
+
+    int idx = 0;
+    for (idx = 0; idx < inorder.size(); idx++)
+        if (inorder[idx] == preorder[0]) break;
+
+    vector<int> lp(preorder.begin()+1, preorder.begin()+1+idx);
+    vector<int> li(inorder.begin(), inorder.begin()+idx);
+    vector<int> rp(preorder.begin()+1+idx, preorder.end());
+    vector<int> ri(inorder.begin()+idx+1, inorder.end());
+    root->left  = buildTree(lp, li);
+    root->right = buildTree(rp, ri);
+    return root;
+}
+\`\`\`
+
+### Complexity
+- Time: $O(n^2)$: O(n) copy per level
+- Space: $O(n^2)$: slices at each level
+
+## DFS with Index Boundaries
+Preorder[0] is always root. Find root in inorder at index \`mid\`: everything left of \`mid\` is the left subtree, everything right is the right subtree. Left subtree has \`mid\` nodes in both arrays.
+
+Instead of slicing vectors (O(n) copy per level), pass inorder boundaries \`[inL, inR]\` and advance a preorder index counter. Preorder visits root before children, so left recursion consumes left-subtree preorder nodes automatically: no explicit slicing needed.
+
+Use a hashmap for O(1) inorder index lookup instead of linear scan.
+
+### Code
+\`\`\`cpp
+class Solution {
+    unordered_map<int,int> mp;
+    int preIdx = 0;
+
+    TreeNode* build(vector<int>& pre, int inL, int inR) {
+        if (inL > inR) return nullptr;
+        int val = pre[preIdx++];
+        TreeNode* root = new TreeNode(val);
+        int mid = mp[val];
+        root->left  = build(pre, inL, mid-1);
+        root->right = build(pre, mid+1, inR);
         return root;
     }
 
 public:
     TreeNode* buildTree(vector<int>& preorder, vector<int>& inorder) {
-        for(int i = 0; i < inorder.size(); i++){
-            inorderIdx[inorder[i]] = i;
-        }
-        preIdx = 0;
-        return dfs(preorder, 0, inorder.size()-1);
+        for (int i = 0; i < inorder.size(); i++) mp[inorder[i]] = i;
+        return build(preorder, 0, inorder.size()-1);
     }
+};
+\`\`\`
+
+### Complexity
+- Time: $O(n)$
+- Space: $O(n)$ hashmap + $O(h)$ recursion stack
+`,"../dsa-notes/Trees/Count Good Nodes in Binary Tree.md":`---
+difficulty: Medium
+topics:
+  - Trees
+  - DFS
+  - Recursion
+source: Leetcode
+star: false
+link: https://leetcode.com/problems/count-good-nodes-in-binary-tree/
+date: 2026-06-28
+---
+
+[[Trees]] [[DFS]] [[Recursion]]
+
+# Problem
+Count nodes where no ancestor has a greater value (node val >= max on path from root).
+
+# Approach
+## DFS with Path Maximum
+Pass current path max down by value. At each node, update max, then check if node qualifies. Count good nodes bottom-up.
+
+Trap: pass \`m\` by value not reference. Reference leaks left-branch updates into right branch, corrupting the path max.
+
+### Code
+\`\`\`cpp
+int solve(TreeNode* root, int m) {
+    if (!root) return 0;
+    m = max(root->val, m);
+    int l = solve(root->left, m);
+    int r = solve(root->right, m);
+    return (m <= root->val) ? l + r + 1 : l + r;
+}
+
+int goodNodes(TreeNode* root) {
+    return solve(root, INT_MIN);
+}
+\`\`\`
+
+### Complexity
+- Time: $O(n)$
+- Space: $O(h)$: recursion stack
+`,"../dsa-notes/Trees/Delete Node in a BST.md":`---
+difficulty: Medium
+topics:
+  - Trees
+  - BST
+  - DFS
+source: Leetcode
+star: false
+link: https://leetcode.com/problems/delete-node-in-a-bst/
+date: 2026-06-30
+---
+
+[[Trees]] [[DFS]]
+
+# Problem
+Given root of a BST and a key, delete the node with that key and return the root.
+
+# Approach
+## Recursive BST Delete
+Use BST property to navigate to the node. Three cases on deletion:
+
+1. **No children**: return nullptr
+2. **One child**: return that child
+3. **Two children**: find inorder successor (leftmost node in right subtree), copy its val to current node, then delete successor from right subtree
+
+Return \`root\` at end of every branch. Lets recursion rewire parent pointers automatically without tracking parent explicitly.
+
+Trap: \`root->right = deleteNode(root->right, key)\` not \`return deleteNode(root->right, key)\`. The latter discards current node and returns right subtree to caller.
+
+Trap: in two-children case, \`succ = succ->right\` just moves local pointer. Must call \`deleteNode(root->right, succ->val)\` to actually remove successor from tree.
+
+### Code
+\`\`\`cpp
+TreeNode* deleteNode(TreeNode* root, int key) {
+    if (!root) return nullptr;
+    if (root->val == key) {
+        if (!root->left && !root->right) return nullptr;
+        if (!root->left) return root->right;
+        if (!root->right) return root->left;
+        TreeNode* succ = root->right;
+        while (succ->left) succ = succ->left;
+        root->val = succ->val;
+        root->right = deleteNode(root->right, succ->val);
+    } else if (key > root->val) {
+        root->right = deleteNode(root->right, key);
+    } else {
+        root->left = deleteNode(root->left, key);
+    }
+    return root;
+}
+\`\`\`
+
+### Complexity
+- Time: $O(h)$
+- Space: $O(h)$ recursion stack
+`,"../dsa-notes/Trees/Diameter of Binary Tree.md":`---
+difficulty: Easy
+topics:
+  - Trees
+  - DFS
+  - Recursion
+source: Leetcode
+star: true
+link: https://leetcode.com/problems/diameter-of-binary-tree/
+date: 2026-06-28
+---
+
+[[Trees]] [[DFS]] [[Recursion]]
+
+# Problem
+Find the length of the diameter of a binary tree: the longest path between any two nodes. Length is measured in edges, not nodes.
+
+# Approach
+## DFS Height + Global Max
+At every node, the longest path through it is \`left_height + right_height\` (edges). Track max across all nodes via ref. Return height (not diameter) up the call stack so parent can use it.
+
+Gotcha vs GFG variant: GFG counts nodes, LC counts edges. Same logic, just \`return res - 1\` at the end.
+
+### Code
+\`\`\`cpp
+int dia(TreeNode* root, int& res) {
+    if (!root)
+        return 0;
+
+    int left = dia(root->left, res);
+    int right = dia(root->right, res);
+    int temp = max(left, right) + 1;
+    int take = left + right + 1;  // node count on path through this node
+    res = max(res, take);
+
+    return temp;  // height
+}
+
+int diameterOfBinaryTree(TreeNode* root) {
+    int res = 0;
+    dia(root, res);
+    return res - 1;  // convert node count → edge count
+}
+\`\`\`
+
+### Complexity
+- Time: $O(n)$
+- Space: $O(h)$: recursion stack
+
+## Return Pair (no side effects)
+Same idea, but return \`{height, diameter}\` so no ref needed.
+
+### Code
+\`\`\`cpp
+pair<int,int> dia(TreeNode* root) {
+    if (!root) return {0, 0};
+    auto [lh, ld] = dia(root->left);
+    auto [rh, rd] = dia(root->right);
+    return {max(lh, rh) + 1, max({ld, rd, lh + rh})};
+}
+
+int diameterOfBinaryTree(TreeNode* root) {
+    return dia(root).second;
+}
+\`\`\`
+
+### Complexity
+- Time: $O(n)$
+- Space: $O(h)$
+`,"../dsa-notes/Trees/Diameter of Tree.md":`---
+difficulty: Easy
+topics:
+  - Recursion
+source: Standard
+star: false
+---
+
+[[Recursion]]
+
+# Problem
+The diameter of a tree (sometimes called the width) is the number of nodes on the longest path between two end nodes. The diagram below shows two trees each with diameter nine, the leaves that form the ends of the longest path are shaded (note that there is more than one path in each tree of length nine, but no path longer than nine nodes).
+
+# Solution
+
+The diameter can either pass through a node and move up, or it can be the left subtree + right subtree + node
+
+\`\`\`cpp
+int solve(Node* root, int &res){
+    if(root == NULL)
+        return 0;
+    int left = solve(root->left, res);
+    int right = solve(root->right, res);
+    int temp = max(left, right) + 1;
+    int ans = right + left + 1;
+    res = max(res, ans);
+    return temp;
+}
+
+int diameter(Node* root) {
+    // Your code here
+    int res = 0;
+    int temp = solve(root, res);
+    return res;
+}
 \`\`\`
 `,"../dsa-notes/Trees/House Robber III.md":`---
 difficulty: Medium
@@ -7785,60 +8612,111 @@ public:
 };
 \`\`\``,"../dsa-notes/Trees/Invert Binary Tree.md":`---
 difficulty: Easy
-topics: ["Trees"]
+topics:
+  - Trees
+  - Recursion
 source: Leetcode
 star: false
-link: "https://leetcode.com/problems/invert-binary-tree/description/"
+link: https://leetcode.com/problems/invert-binary-tree/
+date: 2026-06-28
 ---
 
-[[Trees]]
+[[Trees]] [[Recursion]]
 
-Invert the right and left, then place the inverted right to left and inverted left to right
+# Problem
+Given root of a binary tree, invert it (mirror) and return the root.
 
+# Approach
+## Recursive Post-order Swap
+
+Invert both subtrees recursively, then swap them at the root. Post-order matters: invert children before touching the current node.
+
+### Code
 \`\`\`cpp
 TreeNode* invertTree(TreeNode* root) {
-	if(root == nullptr) return nullptr;
+    if (!root)
+        return nullptr;
 
-	TreeNode* temp = root->left;
-	root->left = invertTree(root->right);
-	root->right = invertTree(temp);
+    TreeNode* right = invertTree(root->left);
+    TreeNode* left = invertTree(root->right);
 
-	return root;
+    root->right = right;
+    root->left = left;
+
+    return root;
 }
 \`\`\`
 
+### Complexity
+- Time: $O(n)$
+- Space: $O(h)$ recursion stack, h = tree height
 `,"../dsa-notes/Trees/Kth Smallest Element in a BST.md":`---
 difficulty: Medium
-topics: ["Trees"]
+topics:
+  - Trees
+  - DFS
+  - BST
 source: Leetcode
 star: false
-link: "https://leetcode.com/problems/kth-smallest-element-in-a-bst/description/"
+link: https://leetcode.com/problems/kth-smallest-element-in-a-bst/
+date: 2026-06-29
 ---
 
-[[Trees]]
+[[Trees]] [[DFS]]
 
-# Brute Force
-Inorder traversal in a BST is always increasing in value, so make an array from the BST using inorder traversal and return the kth smallest element.
+# Problem
+Given root of a BST and integer k, return the kth smallest element.
 
+# Approach
+## Inorder DFS (Recursive)
+Inorder traversal of a BST yields values in sorted ascending order. Decrement k at each visited node; when k hits 0, that node is the answer.
+
+Pass k by reference so all recursive calls share the same counter. Return -1 as sentinel for "not found yet"; propagate the real answer up when found.
+
+### Code
 \`\`\`cpp
-int inorder(TreeNode* root, int& k){
-	if(!root) return -1;
-
-	int l = inorder(root->left, k);
-	if(l != -1) return l;
-
-	k--;
-	if(k == 0) return root->val;
-
-	return inorder(root->right, k);
+int inorder(TreeNode* root, int& k) {
+    if (!root) return -1;
+    int l = inorder(root->left, k);
+    if (l > -1) return l;
+    if (--k == 0) return root->val;
+    int r = inorder(root->right, k);
+    if (r > -1) return r;
+    return -1;
 }
 
 int kthSmallest(TreeNode* root, int k) {
-	return inorder(root, k);
+    return inorder(root, k);
 }
 \`\`\`
 
+### Complexity
+- Time: $O(H + k)$
+- Space: $O(H)$ recursion stack
 
+## Inorder Iterative (Cleaner)
+Same logic with explicit stack. No sentinel value, no reference param, no helper function.
+
+### Code
+\`\`\`cpp
+int kthSmallest(TreeNode* root, int k) {
+    stack<TreeNode*> st;
+    while (root || !st.empty()) {
+        while (root) { st.push(root); root = root->left; }
+        root = st.top(); st.pop();
+        if (--k == 0) return root->val;
+        root = root->right;
+    }
+    return -1;
+}
+\`\`\`
+
+### Complexity
+- Time: $O(H + k)$
+- Space: $O(H)$ stack
+
+## Follow-up: Frequent Queries on a Mutable BST
+Augment each node with left-subtree count. Each query becomes $O(H)$ instead of $O(H + k)$. Each insert/delete updates ancestor counts in $O(H)$.
 `,"../dsa-notes/Trees/Linked List in Binary Tree.md":`---
 difficulty: Medium
 topics: ["Binary Search", "DFS", "Trees", "BFS", "Linked Lists"]
@@ -7853,143 +8731,291 @@ code: LeetCode/Linked_list_in_binary_tree.cpp
 	1. Using  - create a dfs algorithm which checks if the current root val and head val are equal and if they are equal then continue the search for head->next, root->left and right.
 	2. Using bfs - Instead of searching on one side of the tree first, we use a queue to store the nodes of the tree and compare the value of the linked list with the elements in the queue, the algorithm remains the same its just the order in which the algorithm is used on different nodes.`,"../dsa-notes/Trees/Lowest Common Ancestor of a Binary Search Tree.md":`---
 difficulty: Medium
-topics: ["Trees"]
+topics:
+  - Trees
+  - BST
+  - DFS
 source: Leetcode
 star: false
-link: "https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/description/"
+link: https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/
+date: 2026-06-28
 ---
 
-[[Trees]]
+[[Trees]] [[DFS]]
 
-The LCA will either be one of the nodes mentioned, or it will be the point where p and q are on opposite sides of the node because it is a binary search tree.
+# Problem
+Find the lowest common ancestor of two nodes \`p\` and \`q\` in a BST.
 
+# Approach
+## BST Property (Recursive)
+LCA is either one of the nodes themselves, or the split point where p and q diverge to opposite sides. BST property gives direction for free: no need to search both subtrees.
+
+### Code
 \`\`\`cpp
 TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {
-	int low = min(p->val, q->val);
-	int high = max(p->val, q->val);
-
-	if(root->val > high) return lowestCommonAncestor(root->left, p, q);
-	if(root->val < low) return lowestCommonAncestor(root->right, p, q);
-	else return root;
+    int curr = root->val, pval = p->val, qval = q->val;
+    if (curr == pval || curr == qval) return root;
+    if (curr > max(pval, qval)) return lowestCommonAncestor(root->left, p, q);
+    if (curr < min(pval, qval)) return lowestCommonAncestor(root->right, p, q);
+    return root;
 }
 \`\`\`
+
+### Complexity
+- Time: $O(h)$
+- Space: $O(h)$: recursion stack
+
+## Iterative (O(1) space)
+Same logic, avoids recursion stack.
+
+### Code
+\`\`\`cpp
+TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {
+    while (root) {
+        if (p->val < root->val && q->val < root->val)
+            root = root->left;
+        else if (p->val > root->val && q->val > root->val)
+            root = root->right;
+        else
+            return root;
+    }
+    return nullptr;
+}
+\`\`\`
+
+### Complexity
+- Time: $O(h)$
+- Space: $O(1)$
 `,"../dsa-notes/Trees/Maximum Depth of Binary Tree.md":`---
 difficulty: Easy
-topics: ["Trees"]
+topics:
+  - Trees
+  - Recursion
 source: Leetcode
 star: false
-link: "https://leetcode.com/problems/maximum-depth-of-binary-tree/description/"
+link: https://leetcode.com/problems/maximum-depth-of-binary-tree/
+date: 2026-06-28
 ---
 
-[[Trees]]
+[[Trees]] [[Recursion]]
 
-current node (1 length) + the max length between its children subtrees.
+# Problem
+Given root of a binary tree, return its maximum depth.
 
+# Approach
+## Recursive DFS
+
+Current node counts as 1 + the max depth between its left and right subtrees.
+
+# Code
 \`\`\`cpp
 int maxDepth(TreeNode* root) {
-	if(root == nullptr) return 0;
+    if (!root)
+        return 0;
 
-	return max(maxDepth(root->right), maxDepth(root->left)) + 1;
+    return max(maxDepth(root->right), maxDepth(root->left)) + 1;
 }
 \`\`\`
+
+# Complexity
+- Time: $O(n)$
+- Space: $O(h)$ recursion stack, h = tree height
 `,"../dsa-notes/Trees/Same Tree.md":`---
 difficulty: Easy
-topics: ["Trees"]
+topics:
+  - Trees
+  - DFS
+  - Recursion
 source: Leetcode
 star: false
-link: "https://leetcode.com/problems/same-tree/description/"
+link: https://leetcode.com/problems/same-tree/
+date: 2026-06-28
 ---
 
-[[Trees]]
+[[Trees]] [[DFS]] [[Recursion]]
 
-Check if both are not null, then check if their values are different, now repeat for the subtrees.
+# Problem
+Given roots of two binary trees, check if they are structurally identical with the same node values.
 
+# Approach
+## Recursive DFS
+Three base cases handle all null combos. Short-circuit on val mismatch before recursing into subtrees.
+
+### Code
 \`\`\`cpp
 bool isSameTree(TreeNode* p, TreeNode* q) {
-	if(!p && !q)
-		return true;
-	if(!p || !q)
-		return false;
-	if (p->val != q->val)
-		return false;
-	return (isSameTree(p->left, q->left) && isSameTree(p->right, q->right));
+    if (!p && !q)
+        return true;
+    if (!p || !q)
+        return false;
+    if (p->val != q->val)
+        return false;
+    bool left = isSameTree(p->left, q->left);
+    bool right = isSameTree(p->right, q->right);
+    return left && right;
 }
 \`\`\`
+
+### Complexity
+- Time: $O(n)$
+- Space: $O(h)$: recursion stack
 `,"../dsa-notes/Trees/Serialize and Deserialize Binary Tree.md":`---
 difficulty: Hard
-topics: ["Trees"]
+topics:
+  - Trees
+  - DFS
+  - BFS
 source: Leetcode
 star: false
-link: "https://leetcode.com/problems/serialize-and-deserialize-binary-tree/description/"
+link: https://leetcode.com/problems/serialize-and-deserialize-binary-tree/
+date: 2026-06-30
 ---
 
-[[Trees]]
+[[Trees]] [[DFS]]
 
-using [[stringstream]]
+# Problem
+Serialize a binary tree to a string and deserialize it back. Must handle any binary tree (not just BST), including duplicates.
 
+# Approach
+## Preorder with Null Markers (Raw Index)
+Preorder DFS. Encode nulls explicitly as "N," so structure is unambiguous. On deserialize, walk raw string with \`int& idx\` shared across all calls: finds each token by scanning to next comma.
+
+Trap: preorder + inorder without null markers fails with duplicate values.
+
+### Code
 \`\`\`cpp
-void se(TreeNode* root, ostringstream& out) {
-        if(!root)
-            out << "# ";
-        else {
-            out << root->val << " ";
-            se(root->left, out);
-            se(root->right, out);
-        }
-    }
+string serialize(TreeNode* root) {
+    if (!root) return "N,";
+    return to_string(root->val) + "," + serialize(root->left) + serialize(root->right);
+}
 
-    TreeNode* de(istringstream& in) {
-        string val;
-        in >> val;
-        if(val == "#")
-            return nullptr;
-        TreeNode* root = new TreeNode(stoi(val));
-        root->left = de(in);
-        root->right = de(in);
-        return root;
-    }
+TreeNode* desc(string& data, int& idx) {
+    if (idx >= data.size() || data[idx] == 'N') { idx += 2; return nullptr; }
+    int len = idx;
+    while (len < data.size() && data[len] != ',') len++;
+    string num = data.substr(idx, len - idx);
+    idx = len + 1;
+    TreeNode* root = new TreeNode(stoi(num));
+    root->left  = desc(data, idx);
+    root->right = desc(data, idx);
+    return root;
+}
 
-public:
-
-    // Encodes a tree to a single string.
-    string serialize(TreeNode* root) {
-        ostringstream out;
-        se(root, out);
-        return out.str();
-    }
-
-    // Decodes your encoded data to tree.
-    TreeNode* deserialize(string data) {
-        istringstream in(data);
-        return de(in);
-    }
+TreeNode* deserialize(string data) {
+    int idx = 0;
+    return desc(data, idx);
+}
 \`\`\`
+
+### Complexity
+- Time: $O(n)$
+- Space: $O(h)$ recursion stack
+
+## Preorder with Null Markers (Queue: Cleaner)
+Same encoding. Split into tokens once upfront, consume from queue front. No index arithmetic, no manual substr parsing.
+
+### Code
+\`\`\`cpp
+string serialize(TreeNode* root) {
+    if (!root) return "N,";
+    return to_string(root->val) + "," + serialize(root->left) + serialize(root->right);
+}
+
+TreeNode* build(queue<string>& q) {
+    string val = q.front(); q.pop();
+    if (val == "N") return nullptr;
+    TreeNode* node = new TreeNode(stoi(val));
+    node->left  = build(q);
+    node->right = build(q);
+    return node;
+}
+
+TreeNode* deserialize(string data) {
+    queue<string> q;
+    stringstream ss(data);
+    string token;
+    while (getline(ss, token, ',')) q.push(token);
+    return build(q);
+}
+\`\`\`
+
+### Complexity
+- Time: $O(n)$
+- Space: $O(n)$ queue + $O(h)$ recursion stack
 `,"../dsa-notes/Trees/Subtree of Another Tree.md":`---
 difficulty: Easy
-topics: ["Trees"]
+topics:
+  - Trees
+  - DFS
+  - BFS
+  - Recursion
 source: Leetcode
 star: false
-link: "https://leetcode.com/problems/subtree-of-another-tree/description/"
+link: https://leetcode.com/problems/subtree-of-another-tree/
+date: 2026-06-28
 ---
 
-[[Trees]]
+[[Trees]] [[DFS]] [[BFS]] [[Recursion]]
 
-Just iterate over the tree and check if subtree is the same as the subRoot tree using [[Same Tree]]
+# Problem
+Given roots of two trees \`root\` and \`subRoot\`, return true if \`subRoot\` is a subtree of \`root\` (some node in \`root\` has the same structure and values as \`subRoot\`).
 
+# Approach
+## DFS Recursive
+At each node, check if it matches subRoot using isSame. If not, recurse left and right. Reuses [[Same Tree]] logic.
+
+### Code
 \`\`\`cpp
-bool sameTree(TreeNode* t1, TreeNode* t2) {
-	if(!t1 && !t2)  return true;
-	if(!t1 || !t2) return false;
-	if(t1->val != t2->val) return false;
-	return sameTree(t1->left, t2->left) && sameTree(t2->right, t1->right);
+bool isSame(TreeNode* p, TreeNode* q) {
+    if (!p && !q) return true;
+    if (!p || !q) return false;
+    if (p->val != q->val) return false;
+    return isSame(p->left, q->left) && isSame(p->right, q->right);
 }
 
 bool isSubtree(TreeNode* root, TreeNode* subRoot) {
-	if(!root && !subRoot) return true;
-	if(!root || !subRoot) return false;
-	return sameTree(root, subRoot) || isSubtree(root->left, subRoot) || isSubtree(root->right, subRoot);
+    if (!root && !subRoot) return true;
+    if (!root || !subRoot) return false;
+    if (isSame(root, subRoot)) return true;
+    return isSubtree(root->left, subRoot) || isSubtree(root->right, subRoot);
 }
 \`\`\`
+
+### Complexity
+- Time: $O(n \\cdot m)$: n nodes in root, m nodes in subRoot
+- Space: $O(h)$: recursion stack
+
+## BFS Iterative
+BFS through root. On val match, run isSame check. Avoids recursion stack: better for very deep trees.
+
+### Code
+\`\`\`cpp
+bool isSame(TreeNode* p, TreeNode* q) {
+    if (!p && !q) return true;
+    if (!p || !q) return false;
+    if (p->val != q->val) return false;
+    return isSame(p->left, q->left) && isSame(p->right, q->right);
+}
+
+bool isSubtree(TreeNode* root, TreeNode* subRoot) {
+    if (!root && !subRoot) return true;
+    if (!root || !subRoot) return false;
+    queue<TreeNode*> q;
+    q.push(root);
+    while (!q.empty()) {
+        TreeNode* node = q.front(); q.pop();
+        if (node->val == subRoot->val && isSame(node, subRoot))
+            return true;
+        if (node->left) q.push(node->left);
+        if (node->right) q.push(node->right);
+    }
+    return false;
+}
+\`\`\`
+
+### Complexity
+- Time: $O(n \\cdot m)$
+- Space: $O(n)$: queue holds up to n nodes
 `,"../dsa-notes/Trees/Time Needed to Inform All Employees.md":`---
 difficulty: Medium
 topics: ["DFS", "Trees"]
@@ -8000,7 +9026,51 @@ code: LeetCode/time_needed_to_inform_all_employees.cpp
 [[LeetCode/time_needed_to_inform_all_employees.cpp]]
 [[DFS]] [[Trees]]
 
- [Time Needed to Inform All Employees](https://leetcode.com/problems/time-needed-to-inform-all-employees/?envType=study-plan&id=programming-skills-ii) # #  # - We need to convert the given arrays into a tree form, possibly using an unordered map. The map will denote the manager subordinate relationship .Then apply  on the unordered map to find the time required to inform all the employees.`,"../dsa-notes/Two Pointers/Best Time to Buy and Sell Stock.md":`---
+ [Time Needed to Inform All Employees](https://leetcode.com/problems/time-needed-to-inform-all-employees/?envType=study-plan&id=programming-skills-ii) # #  # - We need to convert the given arrays into a tree form, possibly using an unordered map. The map will denote the manager subordinate relationship .Then apply  on the unordered map to find the time required to inform all the employees.`,"../dsa-notes/Trees/Validate Binary Search Tree.md":`---
+difficulty: Medium
+topics:
+  - Trees
+  - DFS
+  - BST
+source: Leetcode
+star: false
+link: https://leetcode.com/problems/validate-binary-search-tree/
+date: 2026-06-28
+---
+
+[[Trees]] [[DFS]]
+
+# Problem
+Given root of a binary tree, determine if it is a valid BST (left subtree strictly less, right subtree strictly greater, recursively).
+
+# Approach
+## DFS with Bounds
+Pass valid range (lo, hi) down. Each node must satisfy lo < val < hi strictly. Going left tightens hi to parent val; going right tightens lo to parent val.
+
+Trap 1: checking only immediate parent-child fails. A node deep in the right subtree can still violate an ancestor's lower bound.
+
+Trap 2: use \`long\` not \`int\` for bounds. Node vals can be INT_MIN/INT_MAX; int bounds cause false passes.
+
+Trap 3: use \`<= lo || >= hi\` not \`< lo || > hi\`. BST has no duplicates so equal-to-bound is invalid.
+
+### Code
+\`\`\`cpp
+bool isValid(TreeNode* root, long lo, long hi) {
+    if (!root) return true;
+    if (root->val <= lo || root->val >= hi) return false;
+    return isValid(root->left, lo, root->val) &&
+           isValid(root->right, root->val, hi);
+}
+
+bool isValidBST(TreeNode* root) {
+    return isValid(root, LONG_MIN, LONG_MAX);
+}
+\`\`\`
+
+### Complexity
+- Time: $O(n)$
+- Space: $O(h)$: recursion stack
+`,"../dsa-notes/Two Pointers/Best Time to Buy and Sell Stock.md":`---
 difficulty: Easy
 topics: ["Two Pointers", "Sliding Window"]
 source: Leetcode
