@@ -1,0 +1,163 @@
+---
+import Base from '../layouts/Base.astro'
+import { getCollection } from 'astro:content'
+import { problemRows, nameOf, DIFFS } from '../lib/dsa.js'
+import { projects, about, vtName } from '../data/site.js'
+
+const allPosts = (await getCollection('blog')).sort((a, b) => b.data.date - a.data.date)
+const posts = allPosts.slice(0, 3)
+
+const dsa = await getCollection('dsa')
+const problems = problemRows(dsa)
+const topics = dsa
+  .filter((e) => e.id.startsWith('topics/'))
+  .map((t) => ({ name: nameOf(t), slug: t.id.slice('topics/'.length) }))
+const diffCounts = DIFFS.map((d) => [d, problems.filter((p) => p.diff === d).length])
+const diffTotal = diffCounts.reduce((n, [, c]) => n + c, 0)
+
+const whoami = 'Abhinav Gupta. Full-stack software engineer: backend platforms and browser tooling, with security experience. Open to new roles.'
+const termData = {
+  whoami,
+  about,
+  projects: projects.map(({ id, name, href }) => ({ id, name, href })),
+  posts: allPosts.map((p) => ({ title: p.data.title, url: `/blog/${p.id}/` })),
+  topics,
+}
+
+const letters = (w, start) => [...w].map((ch, i) => ({ ch, i: start + i }))
+const readingTime = (body = '') => Math.max(1, Math.round(body.split(/\s+/).filter(Boolean).length / 220))
+const fmt = (d) => d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: 'Abhinav Gupta',
+  url: 'https://navknight.github.io',
+  sameAs: ['https://github.com/Navknight', 'https://linkedin.com/in/abhinav-gupta-iitt/'],
+  jobTitle: 'Software Engineer (Full-Stack)',
+}
+---
+<Base
+  title="Abhinav Gupta"
+  description="Abhinav Gupta is a full-stack software engineer who builds backend platforms and browser tooling, with security experience. Previously at Zscaler and SquareX; open to new roles."
+  jsonLd={jsonLd}
+>
+  <div class="bigword" aria-hidden="true">Hello</div>
+
+  <section class="hero" aria-labelledby="hero-name" data-word="Hello">
+    <div class="hero-text">
+      <h1 class="hero-name" id="hero-name">
+        <span class="line">{letters('Abhinav', 0).map((l) => <span class="ch" style={`--c:${l.i}`}>{l.ch}</span>)}</span>
+        <span class="line">{letters('Gupta', 7).map((l) => <span class="ch" style={`--c:${l.i}`}>{l.ch}</span>)}</span>
+      </h1>
+      <p class="status-pill">
+        <span class="dot" aria-hidden="true"></span>
+        <span class="host">Open to new roles</span>
+        <span class="path">Previously Zscaler / SquareX</span>
+      </p>
+      <p class="lede">
+        Full-stack software engineer. I build backend platforms and browser
+        tooling, from auth and data services to custom Chromium features, with
+        enough security experience to know where things break.
+      </p>
+      <div class="actions">
+        <a class="btn primary" href="/about">About me</a>
+        <a class="btn" href="https://github.com/Navknight">GitHub</a>
+        <a class="btn" href="https://linkedin.com/in/abhinav-gupta-iitt/">LinkedIn</a>
+        <a class="btn" href="mailto:abhi.gupta8802@gmail.com">Email</a>
+      </div>
+    </div>
+
+    <div class="term card" data-term>
+      <div class="term-bar" aria-hidden="true"><i></i><i></i><i></i><span>abhinav@navknight: ~</span></div>
+      <div class="term-body">
+        <div class="term-out" aria-live="polite">
+          <p class="echo"><span class="ps">$</span> whoami</p>
+          <p>{whoami}</p>
+          <p class="echo"><span class="ps">$</span> ls</p>
+          <p class="term-links">
+            <a href="/about/">about.md</a><a href="#work">projects/</a><a href="/blog/">blog/</a><a href="/dsa/">dsa/</a><a href="/lab/">lab/</a>
+          </p>
+          <p class="dim js-only">Type help and press Enter. Tab completes.</p>
+        </div>
+        <form class="term-line" hidden>
+          <label><span class="ps">$</span><span class="sr">Terminal command</span>
+            <input type="text" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" placeholder="help" />
+          </label>
+        </form>
+      </div>
+      <script type="application/json" id="term-data" set:html={JSON.stringify(termData)} />
+    </div>
+  </section>
+
+  <section id="work" data-word="Work">
+    <div class="section-head">
+      <h2>Selected work</h2>
+      <a href="/about">Full background</a>
+    </div>
+    <div class="work" data-reveal>
+      {projects.map((p) => (
+        <article class="card project glow">
+          <svg class="ext" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M7 17 17 7M9 7h8v8"/></svg>
+          <p class="metric">{p.metric}<small>{p.note}</small></p>
+          <h3><a href={p.href}>{p.name}</a></h3>
+          <p>{p.blurb}</p>
+          <ul class="tags">{p.stack.map((s) => <li class="tag">{s}</li>)}</ul>
+        </article>
+      ))}
+      <article class="card project glow lab-card">
+        <p class="metric">/lab<small>play in the browser</small></p>
+        <h3><a href="/lab/">Lab</a></h3>
+        <p>Small browser games and experiments. Nothing to install.</p>
+      </article>
+    </div>
+  </section>
+
+  <section data-word="Writing">
+    <div class="section-head">
+      <h2>Latest writing</h2>
+      <a href="/blog">All posts</a>
+    </div>
+    <ul class="rows" data-reveal>
+      {posts.map((post) => (
+        <li>
+          <time datetime={post.data.date.toISOString()}>{fmt(post.data.date)}</time>
+          <div>
+            <h3 style={`view-transition-name:${vtName('post', post.id)}`}><a href={`/blog/${post.id}/`}>{post.data.title}</a></h3>
+            <p>{post.data.description}</p>
+          </div>
+          <span class="rt">{readingTime(post.body)} min read</span>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section data-word="Notes">
+    <div class="section-head">
+      <h2>DSA notes</h2>
+      <a href="/dsa">Browse problems</a>
+    </div>
+    <div class="card dsa-teaser glow" data-reveal>
+      <div>
+        <p class="big">{problems.length}<span>problems solved</span></p>
+        <p>Written up in my Obsidian vault across {topics.length} topics, each with the approach and code.</p>
+        <a class="btn" href="/dsa">Open the notes</a>
+      </div>
+      <div>
+        <div class="split" role="img" aria-label={diffCounts.map(([d, c]) => `${c} ${d}`).join(', ')}>
+          {diffCounts.map(([d, c]) => <i class={d} style={`flex:${c}`}></i>)}
+        </div>
+        <ul class="legend">
+          {diffCounts.map(([d, c]) => (
+            <li><span class={`badge ${d}`}><b>{c}</b>{d[0].toUpperCase() + d.slice(1)}</span></li>
+          ))}
+          <li class="meta">{Math.round((diffCounts[2][1] / diffTotal) * 100)}% hard</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    import '../scripts/terminal.js'
+  </script>
+</Base>

@@ -1,0 +1,72 @@
+---
+import { getCollection } from 'astro:content'
+import Base from '../../layouts/Base.astro'
+import ProblemTable from '../../components/ProblemTable.astro'
+import { nameOf, problemRows, DIFFS } from '../../lib/dsa.js'
+
+const all = await getCollection('dsa')
+const problems = problemRows(all).sort((a, b) => a.name.localeCompare(b.name))
+
+const topicList = all
+  .filter((e) => e.id.startsWith('topics/'))
+  .map((t) => {
+    const name = nameOf(t)
+    const count = problems.filter((p) => p.topics.some((x) => x.toLowerCase() === name.toLowerCase())).length
+    return { name, slug: t.id.slice('topics/'.length), count }
+  })
+  .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+
+const refList = all
+  .filter((e) => e.id.startsWith('reference/'))
+  .map((r) => ({ name: nameOf(r), slug: r.id.slice('reference/'.length) }))
+  .sort((a, b) => a.name.localeCompare(b.name))
+
+const counts = Object.fromEntries(DIFFS.map((d) => [d, problems.filter((p) => p.diff === d).length]))
+const starred = problems.filter((p) => p.star).length
+---
+<Base title="DSA" description="Data structures & algorithms notes — problems, topics, and reference by Abhinav Gupta.">
+  <header class="page-head">
+    <h1>DSA notes</h1>
+    <p class="lede">{problems.length} problems across {topicList.length} topics, each written up with the approach and code, plus quick reference pages for algorithms and tricks.</p>
+  </header>
+
+  <section aria-labelledby="topics-h">
+    <h2 id="topics-h">Topics</h2>
+    <ul class="topics" data-reveal>
+      {topicList.map((t) => (
+        <li><a href={`/dsa/topics/${t.slug}/`}>{t.name}<span>{t.count}</span></a></li>
+      ))}
+    </ul>
+  </section>
+
+  <section aria-labelledby="problems-h">
+    <h2 id="problems-h">Problems</h2>
+    <div class="controls">
+      <label class="search">
+        <span class="sr">Filter problems</span>
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></g></svg>
+        <input type="search" id="dsa-filter" placeholder="Search by name, topic, or source" autocomplete="off" />
+      </label>
+      <div class="chips" role="group" aria-label="Filter by difficulty">
+        <button type="button" class="chip" data-f="" aria-pressed="true">All {problems.length}</button>
+        {DIFFS.map((d) => (
+          <button type="button" class={`chip ${d}`} data-f={d} aria-pressed="false">{d[0].toUpperCase() + d.slice(1)} {counts[d]}</button>
+        ))}
+        <button type="button" class="chip" data-f="star" aria-pressed="false">★ {starred}</button>
+      </div>
+    </div>
+    <p class="count" id="dsa-count" aria-live="polite">Showing all {problems.length} problems</p>
+    <ProblemTable rows={problems} id="dsa-table" />
+  </section>
+
+  <section aria-labelledby="ref-h">
+    <h2 id="ref-h">Reference</h2>
+    <ul class="ref-list">
+      {refList.map((r) => <li><a class="tag" href={`/dsa/reference/${r.slug}/`}>{r.name}</a></li>)}
+    </ul>
+  </section>
+
+  <script>
+    import '../../scripts/dsa-filter.js'
+  </script>
+</Base>

@@ -5,41 +5,54 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run dev        # Local dev server (Vite)
-npm run build      # Generate RSS + Vite production build
-npm run deploy     # Build + deploy to gh-pages branch
+npm run dev        # Local dev server (astro dev)
+npm run build      # astro build -> dist/
+npm run preview    # Preview the production build locally
+npm run deploy     # Build + push dist/ to gh-pages branch (gh-pages -d dist --nojekyll)
 ```
+
+`--nojekyll` is required: without it GitHub Pages runs Jekyll, which hides Astro's `_astro/` asset folder.
+
+The build reads DSA notes from `../dsa/notes`, a sibling repo (the Obsidian vault). It must be checked out next to this repo for `npm run build`/`deploy` to work.
 
 ## Architecture
 
-React 19 SPA deployed to GitHub Pages. Tailwind v4 (config via `@theme` in `src/index.css`, no tailwind.config). Vite 8 with `@tailwindcss/vite` plugin.
+Astro 7 static site, no client framework. Content-first: every blog post and DSA note renders as its own static HTML page with a real title, description, and canonical URL (see `src/layouts/Base.astro`).
 
-### Routing & GH Pages SPA Trick
+### Site URL
 
-React Router v7 with BrowserRouter. GitHub Pages only serves index.html for `/`, so `public/404.html` catches all routes, encodes the path into a query param, and redirects to `/`. A script in `index.html` reads that param via sessionStorage and does `history.replaceState` to restore the URL before React mounts.
+The only place the domain lives is `astro.config.mjs` (`site: 'https://navknight.github.io'`). Moving to a custom domain later is a one-line change there.
 
-### Blog System
+### Content
 
-- Posts live in `src/posts/*.md` with YAML frontmatter (title, date, description, tags, image)
-- `src/data/posts.js` auto-discovers posts via `import.meta.glob('../posts/*.md', { eager: true, query: '?raw' })`, parses frontmatter, renders with `marked`
-- Blog routes: `/blog` (list) and `/blog/:slug` (single post)
-- RSS generated at build time by `scripts/generate-rss.js`
+- `src/content.config.ts` defines two collections:
+  - `blog` — glob loader over `src/content/blog/*.md` (title, date, description, tags, optional image).
+  - `dsa` — glob loader over `../dsa/notes/{Problems,Topics,Reference}/**/*.md`. Entry id is `<kind>/<slug>` where kind comes from the top-level folder (problems/topics/reference); schema is loose since Obsidian frontmatter varies.
+- `src/lib/obsidian.mjs` is a remark plugin (wired in `astro.config.mjs`) that resolves `[[Note]]`/`[[Note|alias]]` wikilinks into real links, strips ` ```dataview ` blocks and `![[Pasted image ...]]` embeds, and renders inline `$…$` as `<code>`.
+- Code highlighting is Astro's built-in Shiki, no extra dependency.
 
-### Main Page Sections (in order)
+### Pages (`src/pages/`)
 
-Hero (interactive terminal with commands including `increase-speed` easter egg) → Experience (tabbed) → Projects → Skills → Interactive Demos → Blog (latest 3) → Contact
+| Route | Content |
+|---|---|
+| `/` | Name, intro, links, latest 3 posts, DSA entry point |
+| `/about` | Condensed roles and selected projects |
+| `/blog`, `/blog/[slug]` | Post list and single post |
+| `/dsa`, `/dsa/[slug]` | Problem list and single problem note |
+| `/dsa/topics/[slug]`, `/dsa/reference/[slug]` | Topic/reference notes with linked problems |
+| `/rss.xml` | RSS feed over the `blog` collection (`@astrojs/rss`) |
+| `/404` | Not-found page |
 
-### Interactive Demos
+`src/layouts/Base.astro` is the only layout: per-page title/description/canonical, OpenGraph/Twitter tags, RSS link, and JSON-LD (`Person` on the home page, `BlogPosting` on posts).
 
-`src/components/Interactive.jsx` hosts tabbed demos: ZipDemo, TTMcDemo, PrefetchDemo. Each is a standalone component in `src/components/`.
+### Styling & scripts
 
-### Visual System
+One hand-written `src/styles/global.css`, no framework: color tokens on `:root` with dark overrides (`prefers-color-scheme` unless `html[data-theme]` is set by the toggle), Schibsted Grotesk + JetBrains Mono from Google Fonts. Shiki uses dual themes (`github-light`/`github-dark-dimmed`, switched in CSS). Scroll progress, ambient parallax, and watermark drift are CSS scroll-driven animations (static where unsupported); everything respects `prefers-reduced-motion`.
 
-- Dark glassmorphism theme (`.glass` class in index.css)
-- `ParticleField.jsx` — full-page canvas particle animation (rendered behind all content)
-- IntersectionObserver pattern used across Projects, Skills, Experience for scroll-triggered fade-in
-- Color palette defined in `@theme` block: indigo accent, dark surfaces, zinc text hierarchy
+Client JS is small, independent modules in `src/scripts/`, imported from a `<script>` in `Base.astro` or the page that needs it: `theme` (presets light/dark/dracula/gruvbox/solarized/nord via `html[data-theme]`, `setTheme()` shared by the toggle, terminal and palette), `reveal`, `glow`, `palette` (Ctrl/Cmd+K or `/`; lazily fetches `/search.json` from `src/pages/search.json.js`), `clock` (IST in the status-bar footer), `bigword` (fixed background word swapped per `[data-word]` section), `terminal` (home hero; data is build-time JSON in `#term-data`), `dsa-filter`. The no-flash theme read and the `html.js` class stay inline in `<head>`. Anything hidden for animation is gated on `html.js`, so no-JS/crawlers see everything. Cross-document View Transitions are enabled in CSS (off under reduced motion).
 
-### Deploy
+Shared data: `src/data/site.js` (projects, themes, bio, `vtName`), `src/data/now.txt` (the footer "now:" line). The footer's build date and git hash are read at build time. DSA helpers live in `src/lib/dsa.js`; the problem table is `src/components/ProblemTable.astro`.
 
-`gh-pages` package pushes `dist/` to the `gh-pages` branch. Main branch is `main`; deploy target branch is `gh-pages`.
+### Sitemap
+
+`@astrojs/sitemap` generates `sitemap-index.xml` at build time; `public/robots.txt` points to it.

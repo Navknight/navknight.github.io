@@ -1,0 +1,32 @@
+---
+import { slugify } from '../content.config'
+import { vtName } from '../data/site.js'
+
+interface Props { rows: ReturnType<typeof import('../lib/dsa.js').problemRows>; id?: string }
+const { rows, id } = Astro.props
+---
+<div class="card table-wrap">
+  <table class="ptable" id={id}>
+    <thead>
+      <tr>
+        <th scope="col">Problem</th>
+        <th scope="col" class="c-topics">Topics</th>
+        <th scope="col" class="c-src">Source</th>
+        <th scope="col" class="c-diff">Difficulty</th>
+        <th scope="col" class="c-star"><span aria-hidden="true">★</span><span class="sr">Starred</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {rows.map((p) => (
+        <tr data-diff={p.diff} data-star={p.star ? '1' : undefined}>
+          <td><a href={`/dsa/${p.slug}/`} style={`view-transition-name:${vtName('p', p.slug)}`}>{p.name}</a></td>
+          <td class="c-topics"><span class="tags">{p.topics.map((t) => <a class="tag" href={`/dsa/topics/${slugify(t)}/`}>{t}</a>)}</span></td>
+          <td class="c-src">{p.source}</td>
+          <td class="c-diff">{p.difficulty && <span class={`badge ${p.diff}`}>{p.difficulty}</span>}</td>
+          <td class="c-star">{p.star && <span class="star" title="Starred">★</span>}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+  <p class="empty" hidden>No problems match. Clear the search or pick another difficulty.</p>
+</div>

@@ -1,0 +1,120 @@
+---
+import '../styles/global.css'
+import { execSync } from 'node:child_process'
+import { getCollection } from 'astro:content'
+import { THEMES } from '../data/site.js'
+import now from '../data/now.txt?raw'
+
+interface Props {
+  title: string
+  description: string
+  type?: 'website' | 'article'
+  date?: Date
+  image?: string
+  jsonLd?: Record<string, unknown>
+}
+
+const { title, description, type = 'website', date, image, jsonLd } = Astro.props
+const site = 'Abhinav Gupta'
+const fullTitle = title === site ? title : `${title} · ${site}`
+const canonical = new URL(Astro.url.pathname, Astro.site)
+const ogImage = image ? new URL(image, Astro.site) : undefined
+const nav = [['/', 'Home'], ['/blog', 'Blog'], ['/dsa', 'DSA'], ['/lab', 'Lab'], ['/about', 'About']]
+
+// Status bar facts, resolved at build time
+let commit = 'dev'
+try { commit = execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim() } catch {}
+const built = new Date().toISOString().slice(0, 10)
+const postCount = (await getCollection('blog')).length
+const noteCount = (await getCollection('dsa')).length
+const themeInit = `document.documentElement.classList.add('js');try{var t=localStorage.getItem('theme');if(${JSON.stringify(THEMES)}.indexOf(t)>-1)document.documentElement.dataset.theme=t}catch(e){}`
+const path = Astro.url.pathname.replace(/\/$/, '') || '/'
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{fullTitle}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={canonical} />
+  <link rel="alternate" type="application/rss+xml" title={`${site} — Blog`} href="/rss.xml" />
+  <link rel="sitemap" href="/sitemap-index.xml" />
+  <meta property="og:type" content={type} />
+  <meta property="og:title" content={fullTitle} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:site_name" content={site} />
+  {ogImage && <meta property="og:image" content={ogImage} />}
+  {date && <meta property="article:published_time" content={date.toISOString()} />}
+  <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
+  {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+  <meta name="color-scheme" content="light dark" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Schibsted+Grotesk:ital,wght@0,400..900;1,400..900&display=swap" />
+  <script is:inline set:html={themeInit} />
+  <slot name="head" />
+</head>
+<body>
+  <div class="ambient" aria-hidden="true"></div>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="progress" aria-hidden="true"></div>
+    <div class="wrap bar">
+      <a class="wordmark" href="/"><span class="glyph" aria-hidden="true">nk</span>navknight</a>
+      <nav aria-label="Main">
+        {nav.map(([href, label], i) => (
+          <a href={href} aria-current={(href === '/' ? path === '/' : path.startsWith(href)) ? 'page' : undefined}><span class="idx" aria-hidden="true">[{i}]</span>{label}</a>
+        ))}
+      </nav>
+      <button class="palette-btn" type="button" aria-label="Search pages and notes" title="Search (Ctrl K or /)" hidden>
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></g></svg>
+        <kbd>⌘K</kbd>
+      </button>
+      <button class="theme-toggle" type="button" aria-label="Switch light or dark theme" title="Switch light or dark theme">
+        <svg class="i-moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M20.7 14.6A8.5 8.5 0 0 1 9.4 3.3a8.5 8.5 0 1 0 11.3 11.3Z"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.2M12 19.8V22M2 12h2.2M19.8 12H22M4.9 4.9l1.6 1.6M17.5 17.5l1.6 1.6M4.9 19.1l1.6-1.6M17.5 6.5l1.6-1.6"/></g></svg>
+      </button>
+    </div>
+  </header>
+  <main id="main" class="wrap">
+    <slot />
+  </main>
+  <footer class="site-footer">
+    <div class="wrap foot">
+      <p>Abhinav Gupta. Software engineer, full-stack.</p>
+      <nav aria-label="Elsewhere">
+        <a href="https://github.com/Navknight">GitHub</a>
+        <a href="https://linkedin.com/in/abhinav-gupta-iitt/">LinkedIn</a>
+        <a href="mailto:abhi.gupta8802@gmail.com">Email</a>
+        <a href="/rss.xml">RSS</a>
+      </nav>
+    </div>
+    <div class="statusbar">
+      <div class="wrap status">
+        <span><b>ist</b> <time id="ist">--:--:--</time></span>
+        <span><b>build</b> {built} <a href={`https://github.com/Navknight/navknight.github.io/commit/${commit}`}>{commit}</a></span>
+        <span><b>index</b> {postCount} posts, {noteCount} notes</span>
+        <span class="now"><b>now:</b> {now.trim()}</span>
+      </div>
+    </div>
+  </footer>
+  <dialog class="palette" aria-label="Search">
+    <form method="dialog" class="palette-box">
+      <input type="text" class="palette-input" placeholder="Jump to a page, post, problem, or theme" aria-label="Search" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="true" aria-controls="palette-list" />
+      <ul class="palette-list" id="palette-list" role="listbox"></ul>
+      <p class="palette-hint"><kbd>↑</kbd><kbd>↓</kbd> move <kbd>Enter</kbd> open <kbd>Esc</kbd> close</p>
+    </form>
+  </dialog>
+  <script>
+    // Each feature is an independent module in src/scripts/; add new ones here.
+    import '../scripts/theme.js'
+    import '../scripts/reveal.js'
+    import '../scripts/glow.js'
+    import '../scripts/palette.js'
+    import '../scripts/clock.js'
+    import '../scripts/bigword.js'
+  </script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+---
+import { getCollection, render } from 'astro:content'
+import path from 'node:path'
+import Base from '../../../layouts/Base.astro'
+
+export async function getStaticPaths() {
+  const refs = (await getCollection('dsa')).filter((e) => e.id.startsWith('reference/'))
+  return refs.map((entry) => ({ params: { slug: entry.id.slice('reference/'.length) }, props: { entry } }))
+}
+
+function makeDescription(data, body, title) {
+  if (data.description) return String(data.description)
+  const plain = body
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/!\[\[[^\]]*\]\]/g, ' ')
+    .replace(/\[\[([^\]|]+)\|?([^\]]*)\]\]/g, (_, n, a) => a || n)
+    .replace(/[#*_`$>-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return plain ? plain.slice(0, 155) : `${title} — DSA notes by Abhinav Gupta`
+}
+
+const { entry } = Astro.props
+const { Content } = await render(entry)
+const title = path.basename(entry.filePath ?? entry.id, '.md')
+const description = makeDescription(entry.data, entry.body ?? '', title)
+---
+<Base title={`${title} (reference)`} description={description}>
+  <header class="page-head">
+    <p class="crumbs"><a href="/dsa">DSA</a> / Reference</p>
+    <h1>{title}</h1>
+  </header>
+  <article class="prose">
+    <Content />
+  </article>
+</Base>

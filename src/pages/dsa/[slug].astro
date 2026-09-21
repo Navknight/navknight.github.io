@@ -1,0 +1,56 @@
+---
+import { getCollection, render } from 'astro:content'
+import path from 'node:path'
+import Base from '../../layouts/Base.astro'
+import { slugify } from '../../content.config'
+import { vtName } from '../../data/site.js'
+
+export async function getStaticPaths() {
+  const problems = (await getCollection('dsa')).filter((e) => e.id.startsWith('problems/'))
+  return problems.map((entry) => ({ params: { slug: entry.id.slice('problems/'.length) }, props: { entry } }))
+}
+
+function makeDescription(data, body, title) {
+  if (data.description) return String(data.description)
+  const m = body.match(/^#\s+Problem\s*$/m)
+  let text = body
+  if (m) {
+    const rest = body.slice(m.index + m[0].length)
+    const next = rest.search(/^#\s+/m)
+    text = next === -1 ? rest : rest.slice(0, next)
+  }
+  const plain = text
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/!\[\[[^\]]*\]\]/g, ' ')
+    .replace(/\[\[([^\]|]+)\|?([^\]]*)\]\]/g, (_, n, a) => a || n)
+    .replace(/[#*_`$>-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return plain ? plain.slice(0, 155) : `${title} — DSA notes by Abhinav Gupta`
+}
+
+const { entry } = Astro.props
+const { Content } = await render(entry)
+const title = path.basename(entry.filePath ?? entry.id, '.md')
+const { difficulty, topics, source, link, date, star } = entry.data
+const topicList = Array.isArray(topics) ? topics : topics ? [topics] : []
+const description = makeDescription(entry.data, entry.body ?? '', title)
+---
+<Base title={title} description={description} type="article" date={date}>
+  <header class="card note-card">
+    <p class="crumbs"><a href="/dsa">DSA</a>{topicList[0] && <> / <a href={`/dsa/topics/${slugify(topicList[0])}/`}>{topicList[0]}</a></>}</p>
+    <h1><span style={`view-transition-name:${vtName('p', entry.id.slice('problems/'.length))}`}>{title}</span>{star && <span class="star" title="Starred"> ★</span>}</h1>
+    <dl class="facts">
+      {difficulty && <div><dt>Difficulty</dt><dd><span class={`badge ${difficulty.toLowerCase()}`}>{difficulty}</span></dd></div>}
+      {topicList.length > 0 && (
+        <div><dt>Topics</dt><dd><span class="tags">{topicList.map((t) => <a class="tag" href={`/dsa/topics/${slugify(t)}/`}>{t}</a>)}</span></dd></div>
+      )}
+      {source && <div><dt>Source</dt><dd>{source}</dd></div>}
+      {date && <div><dt>Solved</dt><dd><time datetime={date.toISOString()}>{date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</time></dd></div>}
+    </dl>
+    {link && <a class="btn primary" href={link}>Open problem on {new URL(link).hostname.replace(/^www\./, '')}</a>}
+  </header>
+  <article class="prose note-prose">
+    <Content />
+  </article>
+</Base>
