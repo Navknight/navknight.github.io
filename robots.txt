@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://navknight.github.io/sitemap.xml
+Sitemap: https://navknight.github.io/sitemap-index.xml
