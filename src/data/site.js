@@ -90,6 +90,68 @@ export const decisions = [
       ],
     },
   },
+  {
+    id: "goxchange",
+    name: "GoXchange",
+    href: "https://github.com/Navknight/GoXchange",
+    what: "A limit order book in Go, fed replayed Binance data over gRPC, built to learn how exchanges actually work.",
+    stack: ["Go", "gRPC"],
+    problem: "Letting everyone trade against one order book without locking it",
+    chose:
+      "One goroutine owns the book and does everything to it, in order. Every gRPC call arrives on its own goroutine, sends a typed request down a channel and waits for the answer. It’s the LMAX idea: nothing to lock, because nobody else can touch the state. Market data goes out through a publisher that drops events for readers who can’t keep up, so one slow reader can’t stall the book.",
+    cost:
+      "Throughput tops out at whatever one goroutine can do, and I wrote that down on purpose. Replies go into a channel with room for one message, so a caller who gives up waiting can’t freeze the loop either.",
+    diagram: {
+      width: 680,
+      height: 214,
+      nodes: [
+        { id: "calls", x: 0, y: 24, w: 150, label: "gRPC calls", sub: "a goroutine each" },
+        { id: "engine", x: 265, y: 24, w: 160, label: "engine loop", sub: "owns the book", hot: true },
+        { id: "pub", x: 530, y: 24, w: 150, label: "publisher", sub: "drops slow readers" },
+        { id: "replay", x: 0, y: 150, w: 150, label: "Binance replay", sub: "real depth diffs" },
+        { id: "tui", x: 530, y: 150, w: 150, label: "terminal UI", sub: "live book" },
+      ],
+      edges: [
+        { from: "calls", to: "engine", label: "requests", hot: true },
+        { from: "engine", to: "calls", label: "reply, buffered", d: "M345 80V104H110V80", at: [228, 124] },
+        { from: "engine", to: "pub", label: "snapshots" },
+        { from: "replay", to: "calls", label: "orders", via: "v", at: [75, 118] },
+        { from: "pub", to: "tui", label: "stream", via: "v", at: [605, 118] },
+      ],
+    },
+  },
+  {
+    id: "flash",
+    name: "flash",
+    href: "https://ec2-13-235-42-117.ap-south-1.compute.amazonaws.com",
+    what: "Live study battles: race classmates through a deck, or go one-on-one on a coding problem with Elo matchmaking.",
+    stack: ["TypeScript", "Socket.IO", "Postgres", "Judge0", "AWS"],
+    problem: "Running live rooms and strangers’ code on one small server",
+    chose:
+      "Everything runs on a single EC2 box under Docker Compose, and only Caddy faces the internet. Caddy serves the app and hands the API and websockets to a Fastify and Socket.IO backend, where every battle is a Socket.IO room. Submitted code runs in a self-hosted Judge0 with its own workers, not in the backend. Every push to main redeploys.",
+    cost:
+      "One box is one failure domain: if it goes down, every room goes with it. Judge0 also needs x86 and cgroup v1, which chose the instance type and the kernel settings for me.",
+    diagram: {
+      width: 680,
+      height: 228,
+      groups: [{ x: 162, y: 6, w: 516, h: 216, label: "one EC2 box" }],
+      nodes: [
+        { id: "browser", x: 0, y: 24, w: 120, label: "browser" },
+        { id: "caddy", x: 180, y: 24, w: 130, label: "Caddy", sub: "only open port" },
+        { id: "api", x: 400, y: 24, w: 150, label: "backend", sub: "Fastify + Socket.IO" },
+        { id: "pg", x: 572, y: 24, w: 100, label: "Postgres" },
+        { id: "spa", x: 180, y: 136, w: 130, label: "static SPA" },
+        { id: "judge", x: 400, y: 136, w: 150, label: "Judge0", sub: "runs your code", hot: true },
+      ],
+      edges: [
+        { from: "browser", to: "caddy", label: "HTTPS" },
+        { from: "caddy", to: "api", label: "api + ws" },
+        { from: "api", to: "pg" },
+        { from: "caddy", to: "spa", label: "everything else", via: "v", at: [245, 112] },
+        { from: "api", to: "judge", label: "submissions", hot: true, via: "v", at: [475, 112] },
+      ],
+    },
+  },
 ];
 
 // Smaller things, one line each.
@@ -98,20 +160,56 @@ export const projects = [
     name: "browser.security",
     href: "https://browser.security",
     blurb:
-      "An open-source kit I co-created that reproduces 30+ tricks web security gateways miss. We showed it at DEF CON, and Forbes wrote it up.",
+      "An open-source kit I co-created at SquareX that reproduces 30+ tricks web security gateways miss. We showed it at DEF CON, and Forbes wrote it up.",
   },
   {
-    name: "Dead-block aware prefetching",
-    href: "https://github.com/navknight/mgpusim",
+    name: "Wattle",
+    href: "https://github.com/Navknight/Wattle",
     blurb:
-      "A multi-GPU cache prefetcher that guesses which blocks are dead and prefetches into their slots instead. 32% fewer cache misses in MGPUsim.",
+      "A native GNOME client for WhatsApp Web in GTK4 and WebKitGTK instead of Electron, with a separate session for every account.",
   },
   {
-    name: "Parallel TTMc",
-    href: "https://github.com/cyclops-community/ctf",
+    name: "gphotos",
+    href: "https://github.com/Navknight/gphotos",
     blurb:
-      "Tensor-times-matrix chain for sparse tensor decomposition, added to the Cyclops Tensor Framework. BLAS and OpenMP made it 11× faster.",
+      "Turns a Google Takeout back into a photo library you own: pairs photos with their JSON sidecars, deduplicates, and writes the metadata in without overwriting what the camera recorded.",
   },
+  {
+    name: "CUDA softmax",
+    href: "https://github.com/Navknight/softmax",
+    blurb:
+      "Softmax over 10 million floats, written from scratch in CUDA and raced on a T4 against Triton, PyTorch, CuPy, JAX and TensorFlow.",
+  },
+];
+
+// Everything, newest first, for /projects. `to` points at a home-page decision.
+export const archive = [
+  { year: 2026, items: [
+    { name: "Tally", to: "/#tally", blurb: "A money tracker that reads your bank SMS and never touches the internet." },
+    { name: "Wattle", href: "https://github.com/Navknight/Wattle", blurb: "A native GNOME client for WhatsApp Web, GTK4 and WebKitGTK instead of Electron." },
+    { name: "flash", to: "/#flash", blurb: "Live study battles and one-on-one coding duels with Elo matchmaking." },
+    { name: "GoXchange", to: "/#goxchange", blurb: "A limit order book in Go where one goroutine owns the book." },
+    { name: "CUDA softmax", href: "https://github.com/Navknight/softmax", blurb: "Softmax from scratch in CUDA, benchmarked against five frameworks." },
+    { name: "ZipZap", to: "/#zipzap", blurb: "Edit files inside a zip in the browser without recompressing it." },
+    { name: "Rituals", to: "/#rituals", blurb: "A habit tracker where a day only counts with a photo." },
+    { name: "zed-gn", href: "https://github.com/Navknight/zed-gn", blurb: "Support for GN, the build language Chromium uses, in the Zed editor." },
+    { name: "gphotos", href: "https://github.com/Navknight/gphotos", blurb: "Rebuilds a real photo library from a Google Takeout, metadata and all." },
+  ] },
+  { year: 2025, items: [
+    { name: "Dead-block aware prefetching", href: "https://github.com/navknight/mgpusim", blurb: "A multi-GPU cache prefetcher that fills dead blocks; 32% fewer misses in MGPUsim." },
+  ] },
+  { year: 2024, items: [
+    { name: "browser.security", href: "https://browser.security", blurb: "30+ browser tricks that security gateways miss. Shown at DEF CON." },
+    { name: "Parallel TTMc", href: "https://github.com/cyclops-community/ctf", blurb: "Sparse tensor-times-matrix chain for the Cyclops Tensor Framework, 11× faster." },
+    { name: "chessGPT", href: "https://github.com/Navknight/chessGPT", blurb: "A chess AI with minimax and alpha-beta pruning that you can play in the browser." },
+  ] },
+  { year: 2023, items: [
+    { name: "navavishkar", href: "https://github.com/Navknight/navavishkar", blurb: "A mobile app to track the buses on campus." },
+    { name: "OceanView", href: "https://github.com/Navknight/OceanView", blurb: "A map of reef damage, oil spills and restoration sites, for a course on SDG 14." },
+  ] },
+  { year: 2022, items: [
+    { name: "SpeakingLua", href: "https://github.com/Navknight/SpeakingLua", blurb: "An interpreter for a subset of Lua, written in Python." },
+  ] },
 ];
 
 // Build-safe view-transition-name from any slug

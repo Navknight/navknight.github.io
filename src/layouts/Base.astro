@@ -17,7 +17,7 @@ const site = 'Abhinav Gupta'
 const fullTitle = title === site ? title : `${title} · ${site}`
 const canonical = new URL(Astro.url.pathname, Astro.site)
 const ogImage = image ? new URL(image, Astro.site) : undefined
-const nav = [['/blog', 'Blog'], ['/dsa', 'DSA notes'], ['/lab', 'Lab'], ['/about', 'About']]
+const nav = [['/projects', 'Projects'], ['/blog', 'Blog'], ['/dsa', 'DSA notes'], ['/lab', 'Lab'], ['/about', 'About']]
 const built = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 const themeInit = `document.documentElement.classList.add('js');try{var t=localStorage.getItem('theme');if(${JSON.stringify(THEMES)}.indexOf(t)>-1)document.documentElement.dataset.theme=t}catch(e){}`
 const path = Astro.url.pathname.replace(/\/$/, '') || '/'

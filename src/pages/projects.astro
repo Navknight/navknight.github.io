@@ -1,0 +1,34 @@
+---
+import Base from '../layouts/Base.astro'
+import { archive } from '../data/site.js'
+
+const count = archive.reduce((n, y) => n + y.items.length, 0)
+---
+<Base title="Projects" description="Everything Abhinav Gupta has built, newest first: apps, systems experiments, browser security tools and research.">
+  <header class="page-head">
+    <h1>Projects</h1>
+    <p class="lede">
+      {count} things I’ve built and would still show someone, newest first. The
+      ones with an interesting decision inside get a drawing <a href="/#decisions-h">on the home page</a>.
+    </p>
+  </header>
+  <div class="archive">
+    {archive.map((y) => (
+      <>
+        <h2>{y.year}</h2>
+        <ul class="work">
+          {y.items.map((p) => (
+            <li>
+              <h3>
+                {p.href
+                  ? <a href={p.href}>{p.name}<span class="ext" aria-hidden="true">↗</span></a>
+                  : <a href={p.to}>{p.name}</a>}
+              </h3>
+              <p>{p.blurb}</p>
+            </li>
+          ))}
+        </ul>
+      </>
+    ))}
+  </div>
+</Base>
