@@ -39,7 +39,7 @@ The only place the domain lives is `astro.config.mjs` (`site: 'https://navknight
 | `/about` | Condensed roles and selected projects |
 | `/blog`, `/blog/[slug]` | Post list and single post |
 | `/dsa`, `/dsa/[slug]` | Problem list and single problem note |
-| `/dsa/topics/[slug]`, `/dsa/reference/[slug]` | Topic/reference notes with linked problems |
+| `/dsa/reference/[slug]` | Reference notes (the vault's topics) with linked problems |
 | `/rss.xml` | RSS feed over the `blog` collection (`@astrojs/rss`) |
 | `/404` | Not-found page |
 
@@ -47,11 +47,11 @@ The only place the domain lives is `astro.config.mjs` (`site: 'https://navknight
 
 ### Styling & scripts
 
-One hand-written `src/styles/global.css`, no framework: color tokens on `:root` with dark overrides (`prefers-color-scheme` unless `html[data-theme]` is set by the toggle), Schibsted Grotesk + JetBrains Mono from Google Fonts. Shiki uses dual themes (`github-light`/`github-dark-dimmed`, switched in CSS). Scroll progress, ambient parallax, and watermark drift are CSS scroll-driven animations (static where unsupported); everything respects `prefers-reduced-motion`.
+One hand-written `src/styles/global.css`, no framework. The look is borrowed from the Rituals/Tally apps: untinted white (pure black in dark), one teal accent, Nunito from Google Fonts, and a solid "lip" under anything pressable (`.btn`, `.key`, `.chip`; pressed = sunk). Layout is a 12-column grid: the header spreads small text across it, and home sections hang off column 4. The hero name is sized in container units to span the column. Color tokens on `:root` with dark overrides (`prefers-color-scheme` unless `html[data-theme]` is set by the toggle). Shiki uses dual themes (`github-light`/`github-dark-dimmed`, switched in CSS). No ambient motion: only press feedback and a short cross-document view transition, off under reduced motion.
 
-Client JS is small, independent modules in `src/scripts/`, imported from a `<script>` in `Base.astro` or the page that needs it: `theme` (presets light/dark/dracula/gruvbox/solarized/nord via `html[data-theme]`, `setTheme()` shared by the toggle, terminal and palette), `reveal`, `glow`, `palette` (Ctrl/Cmd+K or `/`; lazily fetches `/search.json` from `src/pages/search.json.js`), `clock` (IST in the status-bar footer), `bigword` (fixed background word swapped per `[data-word]` section), `terminal` (home hero; data is build-time JSON in `#term-data`), `dsa-filter`. The no-flash theme read and the `html.js` class stay inline in `<head>`. Anything hidden for animation is gated on `html.js`, so no-JS/crawlers see everything. Cross-document View Transitions are enabled in CSS (off under reduced motion).
+Client JS is small, independent modules in `src/scripts/`, imported from a `<script>` in `Base.astro` or the page that needs it: `theme` (light/dark via `html[data-theme]`, `setTheme()` shared by the toggle and palette), `palette` (Ctrl/Cmd+K or `/`; lazily fetches `/search.json` from `src/pages/search.json.js`), `clock` (IST in the header), `dsa-filter`. Base.astro's scripts are bundled into one module, so a throw in one stops the rest. The no-flash theme read and the `html.js` class stay inline in `<head>`.
 
-Shared data: `src/data/site.js` (projects, themes, bio, `vtName`), `src/data/now.txt` (the footer "now:" line). The footer's build date and git hash are read at build time. DSA helpers live in `src/lib/dsa.js`; the problem table is `src/components/ProblemTable.astro`.
+Shared data: `src/data/site.js` (projects, themes, `vtName`), `src/data/now.txt` (the footer "Right now:" line). DSA helpers live in `src/lib/dsa.js`; the problem table is `src/components/ProblemTable.astro`, and `Insight.astro` renders a vault insight line with `backtick` code.
 
 ### Sitemap
 

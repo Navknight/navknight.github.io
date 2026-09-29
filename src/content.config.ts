@@ -32,7 +32,8 @@ const dsa = defineCollection({
     source: z.string().optional(),
     star: z.coerce.boolean().optional(),
     link: z.string().optional(),
-    date: z.coerce.date().optional(),
+    // an empty `date:` in the vault is null, which would coerce to 1970
+    date: z.preprocess((v) => v || undefined, z.coerce.date().optional()),
     type: z.string().optional(),
   }).passthrough(),
 })

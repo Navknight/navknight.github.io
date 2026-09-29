@@ -7,13 +7,15 @@ import { nameOf, problemRows, DIFFS } from '../../lib/dsa.js'
 const all = await getCollection('dsa')
 const problems = problemRows(all).sort((a, b) => a.name.localeCompare(b.name))
 
+// a topic = a reference note that problems link to in their `topics:`
 const topicList = all
-  .filter((e) => e.id.startsWith('topics/'))
+  .filter((e) => e.id.startsWith('reference/'))
   .map((t) => {
     const name = nameOf(t)
     const count = problems.filter((p) => p.topics.some((x) => x.toLowerCase() === name.toLowerCase())).length
-    return { name, slug: t.id.slice('topics/'.length), count }
+    return { name, slug: t.id.slice('reference/'.length), count }
   })
+  .filter((t) => t.count > 0)
   .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
 
 const refList = all
@@ -27,14 +29,14 @@ const starred = problems.filter((p) => p.star).length
 <Base title="DSA" description="Data structures & algorithms notes — problems, topics, and reference by Abhinav Gupta.">
   <header class="page-head">
     <h1>DSA notes</h1>
-    <p class="lede">{problems.length} problems across {topicList.length} topics, each written up with the approach and code, plus quick reference pages for algorithms and tricks.</p>
+    <p class="lede">{problems.length} problems across {topicList.length} topics. Each one gets the idea that cracks it, the complexity and the code, mostly so future me stops solving the same problem twice.</p>
   </header>
 
   <section aria-labelledby="topics-h">
     <h2 id="topics-h">Topics</h2>
-    <ul class="topics" data-reveal>
+    <ul class="topics">
       {topicList.map((t) => (
-        <li><a href={`/dsa/topics/${t.slug}/`}>{t.name}<span>{t.count}</span></a></li>
+        <li><a href={`/dsa/reference/${t.slug}/`}>{t.name}<span>{t.count}</span></a></li>
       ))}
     </ul>
   </section>

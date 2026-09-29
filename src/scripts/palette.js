@@ -84,7 +84,6 @@ async function open() {
 
 if (dlg) {
   btn.hidden = false
-  if (!/Mac|iPhone|iPad/.test(navigator.platform)) btn.querySelector('kbd').textContent = 'Ctrl K'
   btn.addEventListener('click', open)
   document.addEventListener('keydown', (e) => {
     const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable

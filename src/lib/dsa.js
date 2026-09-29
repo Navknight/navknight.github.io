@@ -3,7 +3,8 @@ import path from 'node:path'
 export const nameOf = (e) => path.basename(e.filePath ?? e.id, '.md')
 export const topicsOf = (e) => {
   const t = e.data.topics
-  return Array.isArray(t) ? t : t ? [t] : []
+  // vault topics are wikilinks: "[[Hash Maps]]" / "[[Hash Maps|alias]]"
+  return (Array.isArray(t) ? t : t ? [t] : []).map((x) => String(x).replace(/^\[\[|\]\]$/g, '').split('|')[0].trim())
 }
 export const diffOf = (e) => (e.data.difficulty ?? '').toLowerCase()
 
@@ -17,6 +18,9 @@ export function problemRows(entries) {
       name: nameOf(e),
       slug: e.id.slice('problems/'.length),
       difficulty: e.data.difficulty,
+      rating: e.data.rating,
+      insight: e.data.insight,
+      time: e.data.time,
       diff: diffOf(e),
       topics: topicsOf(e),
       source: e.data.source,

@@ -3,9 +3,9 @@ import Base from '../layouts/Base.astro'
 ---
 <Base
   title="Lab"
-  description="Two quick interactive games on computer architecture and backend performance: race a cache replacement policy and prefetcher against Bélády's optimal, then scale a backend under rising traffic without breaking the p99 SLO."
+  description="Two quick interactive games on computer architecture and backend performance: race a cache replacement policy and prefetcher against Bélády’s optimal, then scale a backend under rising traffic without breaking the p99 SLO."
 >
-  <header class="page-head" data-mark="lab">
+  <header class="page-head">
     <h1>Lab</h1>
     <p class="lede">
       Two small games, each a minute or so, about the systems ideas I work with:
@@ -20,8 +20,7 @@ import Base from '../layouts/Base.astro'
       reused, and a good prefetcher can beat even the optimal replacement policy.
     </p>
     <p class="aside">
-      This is the problem my research on <a href="/#work">DAP (Dead-block Aware Prefetching)</a>
-      tackles: predict which cached blocks will never be used again and put
+      This is the problem my research on <a href="/#smaller-h">DAP (Dead-block Aware Prefetching)</a> tackles: predict which cached blocks will never be used again and put
       prefetches there instead of over live data. That cut GPU cache misses by 32%.
     </p>
     <div class="stage" data-game="cache">
@@ -31,7 +30,7 @@ import Base from '../layouts/Base.astro'
         prefetcher (none, next-line or stride), then step through one of three
         access patterns: sequential, strided and a loop with reuse. Hits and
         misses are shown line by line with a live hit-rate meter, and your final
-        score is compared against Bélády's optimal replacement policy. Enable
+        score is compared against Bélády’s optimal replacement policy. Enable
         JavaScript to play.
       </p>
     </div>
@@ -81,7 +80,7 @@ import Base from '../layouts/Base.astro'
   .game h2 { margin: 0 0 0.5rem; font-size: clamp(1.4rem, 3.5vw, 1.8rem); }
   .teaches { color: var(--muted); max-width: 44rem; }
   .teaches b { color: var(--ink); }
-  .aside { font-size: 0.95rem; color: var(--muted); max-width: 44rem; padding-left: 0.8rem; border-left: 3px solid var(--accent); }
+  .aside { font-size: 0.95rem; color: var(--muted); max-width: 44rem; }
   .fallback { margin: 0; color: var(--muted); }
   .stage { margin-top: 1.25rem; min-height: 8rem; }
 
@@ -93,16 +92,19 @@ import Base from '../layouts/Base.astro'
   .stage :global(.opts span) {
     display: inline-block;
     font-size: 0.9rem;
-    font-weight: 600;
-    padding: 0.35rem 0.8rem;
-    border-radius: 999px;
-    border: 1px solid var(--line);
+    font-weight: 800;
+    padding: 0.4rem 0.8rem;
+    margin-bottom: 3px;
+    border-radius: 10px;
+    border: 1.5px solid var(--edge);
     background: var(--surface);
     color: var(--muted);
-    transition: color 0.15s, border-color 0.15s, background 0.15s;
+    box-shadow: 0 3px 0 var(--edge);
+    transition: transform 0.07s ease-out, box-shadow 0.07s ease-out;
   }
-  .stage :global(.opts label:hover span) { color: var(--ink); border-color: var(--muted); }
-  .stage :global(.opts input:checked + span) { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+  .stage :global(.opts label:hover span) { color: var(--ink); }
+  /* the picked option is pressed in, like the filter chips on /dsa */
+  .stage :global(.opts input:checked + span) { color: var(--ink); background: var(--surface-2); transform: translateY(3px); box-shadow: 0 0 0 var(--edge); }
   .stage :global(.opts input:focus-visible + span) { outline: 2px solid var(--accent); outline-offset: 2px; }
   .stage :global(.opts:disabled) { opacity: 0.5; }
 
@@ -180,14 +182,17 @@ import Base from '../layouts/Base.astro'
     flex-direction: column;
     gap: 0.1rem;
     padding: 0.6rem 0.75rem;
-    border-radius: 10px;
-    border: 1px solid var(--line);
+    margin-bottom: 4px;
+    border-radius: 12px;
+    border: 1.5px solid var(--edge);
     background: var(--surface);
     color: var(--ink);
     cursor: pointer;
-    transition: border-color 0.15s, background 0.15s;
+    box-shadow: 0 4px 0 var(--edge);
+    transition: transform 0.07s ease-out, box-shadow 0.07s ease-out;
   }
-  .stage :global(.buy:hover:not(:disabled)) { border-color: var(--accent); background: var(--accent-soft); }
+  .stage :global(.buy:hover:not(:disabled)) { border-color: var(--accent-fill); }
+  .stage :global(.buy:active:not(:disabled)) { transform: translateY(4px); box-shadow: 0 0 0 var(--edge); }
   .stage :global(.buy:disabled) { opacity: 0.5; cursor: default; }
   .stage :global(.buy b) { font-size: 0.92rem; }
   .stage :global(.buy span) { font-size: 0.78rem; color: var(--muted); line-height: 1.3; }

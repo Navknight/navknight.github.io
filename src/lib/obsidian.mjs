@@ -3,7 +3,6 @@ import path from 'node:path'
 
 const KINDS = [
   ['Problems', '/dsa'],
-  ['Topics', '/dsa/topics'],
   ['Reference', '/dsa/reference'],
 ]
 
@@ -34,7 +33,7 @@ function buildLinkMap() {
 }
 
 // Resolves [[Name]] / [[Name|alias]] wikilinks, drops ![[embeds]] and
-// ```dataview blocks, and turns inline $math$ into inlineCode.
+// ```dataview/```base blocks, and turns inline $math$ into inlineCode.
 export default function obsidian() {
   const linkMap = buildLinkMap()
 
@@ -64,7 +63,7 @@ export default function obsidian() {
     if (!node.children) return
     for (let i = 0; i < node.children.length; i++) {
       const child = node.children[i]
-      if (child.type === 'code' && child.lang === 'dataview') {
+      if (child.type === 'code' && (child.lang === 'dataview' || child.lang === 'base')) {
         node.children.splice(i, 1)
         i--
       } else if (child.type === 'text') {

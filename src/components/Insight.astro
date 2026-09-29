@@ -1,0 +1,6 @@
+---
+// A vault insight line; `backticks` become inline code.
+const { text } = Astro.props
+const parts = String(text ?? '').split('`')
+---
+{parts.map((t, i) => (i % 2 ? <code>{t}</code> : t))}

@@ -1,0 +1,53 @@
+---
+import Base from '../layouts/Base.astro'
+---
+<Base title="Colophon" description="How this site is built, and the decisions behind it.">
+  <header class="page-head">
+    <h1>Colophon</h1>
+    <p class="lede">How this site is put together, written the same way as the rest: what I chose, and what it cost.</p>
+  </header>
+  <div class="prose cv">
+    <h2>Static pages</h2>
+    <p>
+      Every post and every DSA note is its own plain HTML page, built with
+      Astro. Search engines and people with JavaScript off get exactly what
+      everyone else gets. The cost: publishing means rebuilding, which takes
+      about three seconds, so I’ll allow it.
+    </p>
+
+    <h2>Notes from the vault</h2>
+    <p>
+      The DSA notes live in my Obsidian vault, and the build reads them
+      straight from there. Wikilinks turn into real links, Obsidian-only
+      blocks get dropped. I never copy a note into this repo, which also means
+      the site can’t build without the vault sitting next to it.
+    </p>
+
+    <h2>Borrowed looks</h2>
+    <p>
+      The colours, the Nunito type and the little ledge under every button come
+      from my apps, <a href="https://github.com/Navknight/rituals">Rituals</a> and <a href="https://github.com/Navknight/tally">Tally</a>. Diagram labels and code
+      are set in <a href="https://commitmono.com">Commit Mono</a>. The diagrams
+      are hand-placed SVG, so moving a box means editing coordinates. Worth it.
+    </p>
+
+    <h2>Very little JavaScript</h2>
+    <p>
+      Scripts handle the theme switch, search, the clock in the corner, the
+      problem filter and the lab games. Nothing fades in as you scroll, and
+      there’s one stylesheet and no framework.
+    </p>
+
+    <h2>No tracking</h2>
+    <p>
+      No analytics, no cookies. The only thing stored is your light or dark
+      choice, in your own browser. I have no idea if you’re reading this, which
+      is honestly a bit freeing.
+    </p>
+
+    <h2>Hosting</h2>
+    <p>
+      GitHub Pages. The source is on <a href="https://github.com/Navknight/navknight.github.io">GitHub</a>.
+    </p>
+  </div>
+</Base>

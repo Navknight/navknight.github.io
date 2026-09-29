@@ -1,8 +1,7 @@
-// Theme presets via html[data-theme]. The no-flash read is inline in Base.astro <head>.
+// Light/dark via html[data-theme]. The no-flash read is inline in Base.astro <head>.
 import { THEMES } from '../data/site.js'
 
 export { THEMES }
-const DARK = new Set(['dark', 'dracula', 'gruvbox', 'nord'])
 const root = document.documentElement
 
 export const current = () =>
@@ -16,5 +15,5 @@ export function setTheme(name) {
 }
 
 document.querySelector('.theme-toggle')?.addEventListener('click', () => {
-  setTheme(DARK.has(current()) ? 'light' : 'dark')
+  setTheme(current() === 'dark' ? 'light' : 'dark')
 })

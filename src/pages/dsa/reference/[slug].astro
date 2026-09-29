@@ -2,6 +2,8 @@
 import { getCollection, render } from 'astro:content'
 import path from 'node:path'
 import Base from '../../../layouts/Base.astro'
+import ProblemTable from '../../../components/ProblemTable.astro'
+import { problemRows, byDifficulty } from '../../../lib/dsa.js'
 
 export async function getStaticPaths() {
   const refs = (await getCollection('dsa')).filter((e) => e.id.startsWith('reference/'))
@@ -24,13 +26,21 @@ const { entry } = Astro.props
 const { Content } = await render(entry)
 const title = path.basename(entry.filePath ?? entry.id, '.md')
 const description = makeDescription(entry.data, entry.body ?? '', title)
+
+const problems = problemRows(await getCollection('dsa'))
+  .filter((p) => p.topics.some((t) => t.toLowerCase() === title.toLowerCase()))
+  .sort(byDifficulty)
 ---
 <Base title={`${title} (reference)`} description={description}>
   <header class="page-head">
     <p class="crumbs"><a href="/dsa">DSA</a> / Reference</p>
     <h1>{title}</h1>
   </header>
-  <article class="prose">
+  <article class="prose topic-prose">
     <Content />
   </article>
+  {problems.length > 0 && <>
+    <h2>Problems <span class="h-count">{problems.length}</span></h2>
+    <ProblemTable rows={problems} />
+  </>}
 </Base>

@@ -3,82 +3,59 @@ import Base from '../layouts/Base.astro'
 ---
 <Base
   title="About"
-  description="Abhinav Gupta is a full-stack software engineer building backend platforms and browser tooling, with security experience. Roles at Zscaler and SquareX, selected projects, and skills."
+  description="Abhinav Gupta is a full-stack software engineer building backend platforms and browser tooling, with security experience. Two years at SquareX and Zscaler, now looking at architecture roles."
 >
   <header class="page-head">
     <h1>About</h1>
     <p class="lede">
-      I'm a full-stack software engineer. Most of my work is backend platform
-      services and browser tooling: auth, data pipelines, Chromium and extension
-      features, and the build machinery that keeps them shipping. Security came
-      with the territory, so I design with it in mind. I'm open to new roles.
+      I’m a full-stack engineer who ended up spending most of his time inside a
+      browser. Backend services, auth, data pipelines, Chromium patches,
+      extension code: if it sat between a person and something that could hurt
+      them, I probably had my hands in it. Next, I’d like to spend more time
+      designing systems like these, not just keeping them alive.
     </p>
   </header>
-  <div class="prose">
-    <h2>Zscaler <span class="meta" style="display:inline">(Feb 2026 – Jul 2026)</span></h2>
+  <div class="prose cv">
+    <h2>Zscaler <span class="meta">Feb 2026 – Jul 2026</span></h2>
     <p>
-      SquareX was acquired by Zscaler, and I carried the same platform and Zero
-      Trust Browser work forward into Zscaler's larger enterprise customer base.
-      I rebuilt the Chromium fork's patch-management pipeline so it could keep
-      absorbing major upstream upgrades — it's now carried the browser through
-      7 major Chromium versions — and shipped 56+ custom Chrome APIs for device
-      compliance and threat detection. I also doubled throughput on the browser
-      extension's security engine with a sub-millisecond pattern-matching
-      rewrite and cut per-tab memory use by 30%, and ported the full browser
-      protection stack to Firefox on Android.
+      Zscaler bought SquareX, and I came along with the furniture. Same work,
+      much longer customer list. I rebuilt the pipeline that keeps our Chromium
+      fork’s patches applying on top of new upstream releases; it has carried
+      the browser through seven major Chromium versions. I also shipped 56+
+      custom Chrome APIs for device compliance and threat detection, rewrote
+      the extension’s pattern matcher so it answers in under a millisecond and
+      handles twice the traffic, trimmed 30% off per-tab memory, and ported the
+      whole protection stack to Firefox on Android.
     </p>
 
-    <h2>SquareX <span class="meta" style="display:inline">(Jun 2024 – Feb 2026)</span></h2>
+    <h2>SquareX <span class="meta">Jun 2024 – Feb 2026</span></h2>
     <p>
-      I joined as a summer intern and stayed on as a software engineer,
-      building backend and browser-protection platform features used by 80+
-      enterprise tenants and 40,000+ concurrent users. That included the
-      platform's OIDC authentication layer, an enterprise data-leak-protection
-      service for Office and PDF files (later ported to WASM for speed), and
-      the Zero Trust Browser's UI and content-isolation logic in Chromium. I
-      also co-created <a href="https://browser.security">browser.security</a>,
-      an open-source framework simulating 30+ browser-security evasion
-      techniques, shown at DEF CON and covered by Forbes.
+      I showed up as a summer intern and never quite left. I built backend and
+      browser-protection features used by 80+ companies and 40,000+ people at
+      once: the OIDC login layer, a data-leak-protection service that reads
+      Office and PDF files (later ported to WASM, because it needed to be
+      faster), and the Zero Trust Browser’s UI and content isolation inside
+      Chromium. I also co-created <a href="https://browser.security">browser.security</a>,
+      an open-source set of 30+ tricks that slip past web security gateways.
+      We showed it at DEF CON, and Forbes wrote about it.
     </p>
 
-    <h2>Selected projects</h2>
-    <ul>
-      <li>
-        <a href="https://github.com/Navknight/rituals">Rituals</a> — a
-        cross-platform habit tracker with peer-to-peer image sharing, so
-        accountability photos sync without a central server.
-      </li>
-      <li>
-        <a href="https://github.com/Navknight/zipzap">ZipZap</a> — a WASM zip
-        library for in-browser zip extraction and append, cutting client-side
-        memory use by over 80% with additive compression.
-      </li>
-      <li>
-        <a href="https://github.com/navknight/mgpusim">DAP: Dead-Block Aware Prefetching</a>
-        — hardware prefetcher modules for multi-GPU systems in MGPUsim,
-        cutting cache miss rates by 32%.
-      </li>
-      <li>
-        Parallel sparse tensor decomposition (TTMc) — a tensor-times-matrix
-        chain algorithm in the
-        <a href="https://github.com/cyclops-community/ctf">Cyclops Tensor Framework</a>,
-        accelerated 11x with BLAS and OpenMP.
-      </li>
-      <li>
-        <a href="https://browser.security">browser.security</a> — an
-        open-source toolkit for probing browser security defenses, presented
-        at DEF CON.
-      </li>
-    </ul>
-
-    <h2>Skills</h2>
+    <h2>On the side</h2>
     <p>
-      C/C++, Python, Go, Rust, TypeScript, distributed systems and
-      microservices, Chromium/Firefox internals, Kafka, Redis, PostgreSQL,
-      GCP, and Kubernetes.
+      Apps, libraries and research projects, each with the decision that made
+      it interesting, are <a href="/#decisions-h">on the home page</a>. I also
+      keep <a href="/dsa">notes on every DSA problem I solve</a> and
+      a <a href="/lab">lab</a> with two small games about caches and latency.
     </p>
 
-    <h2>Education</h2>
-    <p>Indian Institute of Technology, Tirupati — B.Tech, Computer Science & Engineering.</p>
+    <h2>Tools</h2>
+    <p>
+      I think in C/C++, Go, Rust, Python and TypeScript. I reach for Kafka,
+      Redis, PostgreSQL, GCP and Kubernetes, and I know more about Chromium and
+      Firefox internals than is strictly healthy.
+    </p>
+
+    <h2>School</h2>
+    <p>B.Tech in Computer Science and Engineering from IIT Tirupati.</p>
   </div>
 </Base>
