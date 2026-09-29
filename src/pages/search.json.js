@@ -5,7 +5,7 @@ import { nameOf } from '../lib/dsa.js'
 export async function GET() {
   const pages = [
     ['Home', '/', 'page'], ['Blog', '/blog/', 'page'], ['DSA notes', '/dsa/', 'page'],
-    ['Lab', '/lab/', 'page'], ['About', '/about/', 'page'], ['Colophon', '/colophon/', 'page'], ['RSS feed', '/rss.xml', 'page'],
+    ['Lab', '/lab/', 'page'], ['About', '/about/', 'page'], ['Colophon', '/colophon/', 'page'], ['Résumé', 'https://drive.google.com/file/d/1pi1zhwX6OfzqSGr0NFxfJRJ7-5XqyCKA/view', 'page'], ['RSS feed', '/rss.xml', 'page'],
   ]
   const posts = (await getCollection('blog')).map((p) => [p.data.title, `/blog/${p.id}/`, 'post'])
   const dsa = (await getCollection('dsa')).map((e) => {
