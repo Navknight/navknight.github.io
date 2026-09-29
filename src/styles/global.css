@@ -217,6 +217,7 @@ h1 .star { font-size: 0.45em; vertical-align: 0.5em; margin-left: 0.2em; }
 .section-head a:hover { color: var(--accent); }
 .home .section-head { position: absolute; flex-direction: column; gap: 0.3rem; width: calc((100% - 11 * 1.5rem) / 12 * 3 + 1.5rem); }
 .home .section { position: relative; }
+.ext { display: inline-block; margin-left: 0.2em; font-size: 0.7em; color: var(--accent); }
 .big-h { font-size: clamp(1.75rem, 3vw, 2.4rem); letter-spacing: -0.035em; margin-bottom: 1.5rem; }
 
 /* A decision: project on the left, then the problem, a drawing of the system,
@@ -225,8 +226,6 @@ h1 .star { font-size: 0.45em; vertical-align: 0.5em; margin-left: 0.2em; }
 .decision { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 1.5rem; padding: 2.5rem 0 3rem; border-bottom: 1px solid var(--line); }
 .d-meta { grid-column: 1 / span 3; }
 .d-meta h3 { font-size: 1.5rem; letter-spacing: -0.03em; margin-bottom: 0.4rem; }
-.d-meta h3 a { text-decoration: none; }
-.d-meta h3 a:hover { text-decoration: underline; text-decoration-color: var(--accent); }
 .d-meta p { color: var(--muted); font-size: 0.9375rem; line-height: 1.5; margin-bottom: 0.75rem; }
 .d-body { grid-column: 4 / -1; min-width: 0; }
 .d-problem { font-size: clamp(1.3rem, 2.2vw, 1.7rem); font-weight: 800; letter-spacing: -0.025em; line-height: 1.2; margin: 0 0 1.75rem; }
@@ -266,8 +265,6 @@ h1 .star { font-size: 0.45em; vertical-align: 0.5em; margin-left: 0.2em; }
 .work { list-style: none; margin: 0; padding: 0; border-top: 1.5px solid var(--ink); }
 .work > li { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); gap: 0.25rem 1.5rem; padding: 1.1rem 0; border-bottom: 1px solid var(--line); }
 .work h3 { margin: 0; font-size: 1.0625rem; }
-.work h3 a { text-decoration: none; }
-.work h3 a:hover { text-decoration: underline; text-decoration-color: var(--accent); }
 .work p { margin: 0; color: var(--muted); }
 @media (max-width: 720px) { .work > li { grid-template-columns: 1fr; } }
 
@@ -280,16 +277,13 @@ h1 .star { font-size: 0.45em; vertical-align: 0.5em; margin-left: 0.2em; }
 .rows > li { display: grid; grid-template-columns: 8rem 1fr auto; gap: 0.25rem 2rem; padding: 1.2rem 0; border-bottom: 1px solid var(--line); align-items: baseline; }
 .rows time, .rows .rt { color: var(--muted); font-size: 0.9375rem; font-variant-numeric: tabular-nums; }
 .rows h3 { margin: 0; }
-.rows h3 a { text-decoration: none; }
-.rows h3 a:hover { text-decoration: underline; text-decoration-color: var(--accent); }
 .rows p { margin: 0.2rem 0 0; color: var(--muted); }
 .rows .tags { margin-top: 0.4rem; }
 @media (max-width: 720px) { .rows > li { grid-template-columns: 1fr; } .rows .rt { display: none; } }
 
 .insights { list-style: none; margin: 0; padding: 0; border-top: 1.5px solid var(--ink); }
 .insights li { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 0.25rem 2rem; padding: 1rem 0; border-bottom: 1px solid var(--line); }
-.insights a { font-weight: 800; text-decoration: none; }
-.insights a:hover { text-decoration: underline; text-decoration-color: var(--accent); }
+.insights a { font-weight: 800; }
 .insights p { margin: 0; color: var(--muted); }
 .insights code, .ptable .insight code, .note-head .lede code { font-family: var(--mono); font-size: 0.88em; }
 @media (max-width: 720px) { .insights li { grid-template-columns: 1fr; } }
@@ -330,8 +324,7 @@ input[type='search']:focus-visible { outline: 2.5px solid var(--accent); outline
 .ptable { width: 100%; border-collapse: collapse; font-size: 0.975rem; }
 .ptable th { text-align: left; font-size: 0.875rem; font-weight: 800; color: var(--muted); padding: 0.6rem 1rem 0.6rem 0; border-bottom: 1.5px solid var(--edge); }
 .ptable td { padding: 0.85rem 1rem 0.85rem 0; border-bottom: 1px solid var(--line); vertical-align: top; }
-.ptable td:first-child a { font-weight: 800; text-decoration: none; }
-.ptable td:first-child a:hover { text-decoration: underline; text-decoration-color: var(--accent); }
+.ptable td:first-child a { font-weight: 800; }
 .ptable .insight { display: block; margin-top: 0.15rem; color: var(--muted); font-size: 0.9375rem; line-height: 1.45; max-width: 34rem; }
 .ptable .c-star { width: 2rem; text-align: center; padding-right: 0; }
 .ptable .c-diff { width: 6.5rem; }

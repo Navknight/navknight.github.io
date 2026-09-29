@@ -37,8 +37,8 @@ const jsonLd = {
     <h1 class="hero-line">I build backend systems, and I’ve spent two years convincing Chromium to do things it was never built for.</h1>
     <div class="hero-body">
       <p class="lede">
-        That was at SquareX, which Zscaler bought partway through. Now I’m after
-        architecture roles, where drawing the boxes and arrows is the actual job.
+        That was at SquareX, and then at Zscaler after it bought us, where I was on
+        the founding team of the Zero Trust Browser. Now I’m after architecture roles, where drawing the boxes and arrows is the actual job.
         Below are a few I drew earlier.
       </p>
       <div class="actions">
@@ -56,7 +56,7 @@ const jsonLd = {
       {decisions.map((d) => (
         <article class="decision" id={d.id}>
           <div class="d-meta">
-            <h3><a href={d.href}>{d.name}</a></h3>
+            <h3><a href={d.href}>{d.name}<span class="ext" aria-hidden="true">↗</span></a></h3>
             <p>{d.what}</p>
             <ul class="tags">{d.stack.map((s) => <li class="tag">{s}</li>)}</ul>
           </div>
@@ -81,7 +81,7 @@ const jsonLd = {
     <ul class="work">
       {projects.map((p) => (
         <li>
-          <h3><a href={p.href}>{p.name}</a></h3>
+          <h3><a href={p.href}>{p.name}<span class="ext" aria-hidden="true">↗</span></a></h3>
           <p>{p.blurb}</p>
         </li>
       ))}
