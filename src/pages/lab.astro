@@ -6,7 +6,8 @@ import Base from '../layouts/Base.astro'
   description="Two quick interactive games on computer architecture and backend performance: race a cache replacement policy and prefetcher against Bélády’s optimal, then scale a backend under rising traffic without breaking the p99 SLO."
 >
   <header class="page-head">
-    <h1>Lab</h1>
+    <p class="label"><b>Lab</b> / Two small games</p>
+    <h1>Come <em class="hl">play</em>.</h1>
     <p class="lede">
       Two small games, each a minute or so, about the systems ideas I work with:
       caches and prefetchers, and what happens to latency as a backend fills up.
@@ -20,8 +21,8 @@ import Base from '../layouts/Base.astro'
       reused, and a good prefetcher can beat even the optimal replacement policy.
     </p>
     <p class="aside">
-      This is the problem my research on <a href="/#smaller-h">DAP (Dead-block Aware Prefetching)</a> tackles: predict which cached blocks will never be used again and put
-      prefetches there instead of over live data. That cut GPU cache misses by 32%.
+      My B.Tech thesis poked at this on GPUs. A strided prefetcher cut Conv2D cache misses 32%, and throughput dropped anyway because the shared L2 got crowded.
+      In some benchmarks over 90% of L2 blocks were dead (never touched again), so <a href="/projects">dead-block aware prefetching</a> puts prefetches there instead.
     </p>
     <div class="stage" data-game="cache">
       <p class="fallback">
@@ -95,7 +96,7 @@ import Base from '../layouts/Base.astro'
     font-weight: 800;
     padding: 0.4rem 0.8rem;
     margin-bottom: 3px;
-    border-radius: 10px;
+    border-radius: 0;
     border: 1.5px solid var(--edge);
     background: var(--surface);
     color: var(--muted);
@@ -113,7 +114,7 @@ import Base from '../layouts/Base.astro'
   .stage :global(.btn:disabled) { opacity: 0.5; cursor: default; transform: none; }
   .stage :global(.log) { font-family: var(--mono); font-size: 0.82rem; color: var(--muted); min-height: 2.6em; margin: 0.9rem 0; }
 
-  .stage :global(.meter) { height: 0.6rem; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+  .stage :global(.meter) { height: 0.6rem; border-radius: 0; background: var(--surface-2); overflow: hidden; }
   .stage :global(.meter i) { display: block; height: 100%; width: 0; background: var(--easy); border-radius: inherit; transition: width 0.3s ease, background 0.3s; }
   .stage :global(.meter i[data-tone='warn']) { background: var(--medium); }
   .stage :global(.meter i[data-tone='bad']) { background: var(--hard); }
@@ -122,18 +123,18 @@ import Base from '../layouts/Base.astro'
   .stage :global(.mini dt) { font-size: 0.78rem; color: var(--muted); }
   .stage :global(.mini dd) { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
 
-  .stage :global(.result) { margin-top: 1.25rem; padding: 1rem 1.1rem; border-radius: 10px; background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+  .stage :global(.result) { margin-top: 1.25rem; padding: 1rem 1.1rem; border-radius: 0; background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); }
   .stage :global(.result p:last-child) { margin-bottom: 0; }
 
   /* Cache game */
-  .stage :global(.takeaway) { font-size: 0.95rem; margin: 0.25rem 0 1rem; padding: 0.6rem 0.8rem; border-radius: 8px; background: var(--surface-2); }
+  .stage :global(.takeaway) { font-size: 0.95rem; margin: 0.25rem 0 1rem; padding: 0.6rem 0.8rem; border-radius: 0; background: var(--surface-2); }
   .stage :global(.stream-wrap) { overflow-x: auto; margin-bottom: 1rem; padding: 0.25rem 0; scroll-behavior: smooth; }
   .stage :global(.stream) { display: flex; gap: 0.3rem; list-style: none; margin: 0; padding: 0 0 0.3rem; width: max-content; }
   .stage :global(.stream li) {
     font-family: var(--mono);
     font-size: 0.75rem;
     padding: 0.25rem 0.45rem;
-    border-radius: 6px;
+    border-radius: 0;
     border: 1px solid var(--line);
     color: var(--muted);
   }
@@ -145,7 +146,7 @@ import Base from '../layouts/Base.astro'
   @media (min-width: 640px) { .stage :global(.cache-row) { grid-template-columns: minmax(0, 20rem) 1fr; } }
   .stage :global(.cache) { border-collapse: separate; border-spacing: 0.3rem; width: 100%; margin: -0.3rem; font-family: var(--mono); font-size: 0.85rem; }
   .stage :global(.cache th) { font-size: 0.75rem; font-weight: 600; color: var(--muted); text-align: center; }
-  .stage :global(.cache td) { text-align: center; padding: 0.55rem 0.3rem; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--line); position: relative; }
+  .stage :global(.cache td) { text-align: center; padding: 0.55rem 0.3rem; border-radius: 0; background: var(--surface-2); border: 1px solid var(--line); position: relative; }
   .stage :global(.cache td.empty) { color: var(--muted); background: transparent; border-style: dashed; }
   .stage :global(.cache td small) { position: absolute; top: 0.1rem; right: 0.3rem; font-size: 0.6rem; color: var(--accent); }
   .stage :global(.cache td.pf) { border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
@@ -158,15 +159,15 @@ import Base from '../layouts/Base.astro'
 
   /* Backend game */
   .stage :global(.tiles) { display: grid; grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: 0.5rem; margin-bottom: 1rem; }
-  .stage :global(.tiles > div) { padding: 0.55rem 0.75rem; border-radius: 10px; background: var(--surface-2); min-width: 0; }
+  .stage :global(.tiles > div) { padding: 0.55rem 0.75rem; border-radius: 0; background: var(--surface-2); min-width: 0; }
   .stage :global(.tiles span) { display: block; font-size: 0.75rem; color: var(--muted); }
   .stage :global(.tiles b) { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
   .stage :global(.tiles b[data-tone='warn']) { color: var(--medium); }
   .stage :global(.tiles b[data-tone='bad']) { color: var(--hard); }
   .stage :global(.spark) { margin: 0 0 1rem; }
-  .stage :global(.spark canvas) { display: block; width: 100%; height: 120px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); }
+  .stage :global(.spark canvas) { display: block; width: 100%; height: 120px; border-radius: 0; border: 1px solid var(--line); background: var(--bg); }
   .stage :global(.spark figcaption) { display: flex; flex-wrap: wrap; gap: 1rem; font-size: 0.8rem; color: var(--muted); margin-top: 0.4rem; }
-  .stage :global(.key::before) { content: ''; display: inline-block; width: 0.9rem; height: 3px; margin-right: 0.35rem; vertical-align: middle; border-radius: 2px; }
+  .stage :global(.key::before) { content: ''; display: inline-block; width: 0.9rem; height: 3px; margin-right: 0.35rem; vertical-align: middle; border-radius: 0; }
   .stage :global(.k-lat::before) { background: var(--accent); }
   .stage :global(.k-thr::before) { background: var(--easy); }
   .stage :global(.k-slo::before) { background: repeating-linear-gradient(90deg, var(--hard) 0 4px, transparent 4px 7px); }
@@ -183,7 +184,7 @@ import Base from '../layouts/Base.astro'
     gap: 0.1rem;
     padding: 0.6rem 0.75rem;
     margin-bottom: 4px;
-    border-radius: 12px;
+    border-radius: 0;
     border: 1.5px solid var(--edge);
     background: var(--surface);
     color: var(--ink);

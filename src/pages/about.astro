@@ -6,57 +6,73 @@ import Base from '../layouts/Base.astro'
   description="Abhinav Gupta is a full-stack software engineer building backend platforms and browser tooling, with security experience. Two years at SquareX and Zscaler, now looking at architecture roles."
 >
   <header class="page-head">
-    <h1>About</h1>
+    <p class="label"><b>About</b> / The longer version</p>
+    <h1>Hi, I’m <em class="hl">Abhinav</em>.</h1>
     <p class="lede">
-      I’m a full-stack engineer who ended up spending most of his time inside a
-      browser. Backend services, auth, data pipelines, Chromium patches,
-      extension code: if it sat between a person and something that could hurt
-      them, I probably had my hands in it. Next, I’d like to spend more time
-      designing systems like these, not just keeping them alive.
+      I’m a full-stack engineer who ended up living inside a browser. For 2
+      years I worked on one built to keep company data on company machines, and
+      I had my hands in most of its layers. Next I’d like to design systems like
+      that from the first box.
     </p>
   </header>
   <div class="prose cv">
     <h2>Zscaler <span class="meta">Feb 2026 – Jul 2026</span></h2>
-    <p>
-      Zscaler bought SquareX, and I came along with the furniture. I was on the
-      founding team of Zscaler’s Zero Trust Browser, which meant a much longer
-      customer list and even more Chromium. I rebuilt the pipeline that keeps our Chromium
-      fork’s patches applying on top of new upstream releases; it has carried
-      the browser through seven major Chromium versions. I also shipped 56+
-      custom Chrome APIs for device compliance and threat detection, rewrote
-      the extension’s pattern matcher so it answers in under a millisecond and
-      handles twice the traffic, trimmed 30% off per-tab memory, and ported the
-      whole protection stack to Firefox on Android.
-    </p>
+    <div>
+      <p>
+        Zscaler bought SquareX, and I came along with the furniture. I was on the
+        founding team of the Zero Trust Browser, so mostly it meant more
+        customers and a lot more Chromium.
+      </p>
+      <ul>
+        <li>Wrote 20+ native extension APIs in C++ and Objective-C++ that read a laptop’s health: antivirus, disk encryption, MDM enrollment, certificates. 17 of them landed in 11 days. Together they expose 50+ signals, so the browser can check a device without a separate agent.</li>
+        <li>Rewrote the page masking that hides card numbers and personal data on any site, Google Docs included. The old version re-indexed the whole page every 500 ms. The new one only touches what changed, and it does 2× the work with about 30% less memory per tab.</li>
+        <li>Wrote the first commit of our Android browser, a Firefox fork, and designed the build tooling 3 other engineers then built on. I moved the whole security extension from desktop to Android myself.</li>
+        <li>Built download-to-cloud. When policy says so, your download goes to the company’s Google Drive, OneDrive or Box, and the local copy never lands.</li>
+      </ul>
+    </div>
 
     <h2>SquareX <span class="meta">Jun 2024 – Feb 2026</span></h2>
-    <p>
-      I showed up as a summer intern and never quite left. I built backend and
-      browser-protection features used by 80+ companies and 40,000+ people at
-      once: the OIDC login layer, a data-leak-protection service that reads
-      Office and PDF files (later ported to WASM, because it needed to be
-      faster), and the Zero Trust Browser’s UI and content isolation inside
-      Chromium. I also co-created <a href="https://browser.security">browser.security</a>,
-      an open-source set of 30+ tricks that slip past web security gateways.
-      We showed it at DEF CON, and Forbes wrote about it.
-    </p>
+    <div>
+      <p>
+        I joined as a summer intern and kept showing up. The platform ran for 80+
+        companies and 40,000+ people at once, which made every bug feel
+        personal.
+      </p>
+      <ul>
+        <li>Owned the Go identity provider that Entra ID and Okta call when you sign in. If you aren’t on the Zero Trust Browser, you don’t get in. Later I rewrote most of it, so tenant config now hot-reloads over Kafka with no restarts.</li>
+        <li>Made 631 commits to the React admin console over 18 months. The biggest piece was a deployment-script generator: pick 1 of 8 MDMs, an OS and a browser, and it writes the install script for you.</li>
+        <li>Added TOTP two-factor sign-in, and put the product docs (public until then) behind a login.</li>
+        <li>As an intern, co-built <a href="https://browser.security">browser.security</a>. I wrote 29 of its 46 ways to sneak a file past a web security gateway (split over WebRTC, hidden inside images, that sort of thing) and the demo site. SquareX took it to DEF CON 32, and Forbes covered it.</li>
+      </ul>
+    </div>
 
     <h2>On the side</h2>
-    <p>
-      Apps, libraries and research projects, each with the decision that made
-      it interesting, are <a href="/#decisions-h">on the home page</a>. I also
-      keep <a href="/dsa">notes on every DSA problem I solve</a> and
-      a <a href="/lab">lab</a> with two small games about caches and latency.
-    </p>
+    <div>
+      <p>
+        Apps, libraries and the odd research project. The ones with an
+        interesting decision get a drawing <a href="/#builds-h">on the home page</a>,
+        and the rest are on <a href="/projects">the projects page</a>. I keep <a href="/dsa">notes on every DSA problem I solve</a>, and the <a href="/lab">lab</a> has
+        2 small games about caches and latency.
+      </p>
+    </div>
 
     <h2>Tools</h2>
-    <p>
-      I think in C/C++, Go, Rust, Python and TypeScript. I reach for Kafka,
-      Redis, PostgreSQL, GCP and Kubernetes, and I know more about Chromium and
-      Firefox internals than is strictly healthy.
-    </p>
+    <div>
+      <p>
+        Mostly C++, Go, TypeScript and Python, with Rust and CUDA when a side
+        project asks for them. Kafka, Redis, Postgres, GCP and Docker at work. I
+        know more about Chromium and Firefox internals than is strictly healthy.
+      </p>
+    </div>
 
     <h2>School</h2>
-    <p>B.Tech in Computer Science and Engineering from IIT Tirupati.</p>
+    <div>
+      <p>
+        B.Tech in Computer Science, IIT Tirupati, 2021–2025. I was also elected
+        Students’ General Secretary, and we finished that year net-zero on a
+        budget that had been cut 25%. Codeforces Expert and LeetCode Knight,
+        when the contests go my way.
+      </p>
+    </div>
   </div>
 </Base>

@@ -9,8 +9,9 @@ const readingTime = (body = '') => Math.max(1, Math.round(body.split(/\s+/).filt
 ---
 <Base title="Blog" description="Notes on systems, browsers, and whatever I’m learning.">
   <header class="page-head">
-    <h1>Blog</h1>
-    <p class="lede">Notes on systems, browsers, and whatever I’m learning. Also available as an <a href="/rss.xml">RSS feed</a>.</p>
+    <p class="label"><b>Blog</b> / {posts.length} posts</p>
+    <h1>Things I <em class="hl">wrote down</em>.</h1>
+    <p class="lede">Systems, browsers, and whatever I’m learning that week. There’s an <a href="/rss.xml">RSS feed</a> too.</p>
   </header>
   <ul class="rows">
     {posts.map((post) => (

@@ -45,7 +45,7 @@ const routed = edges.map((e) => ({ ...e, ...route(e) }))
     </defs>
     {groups.map((g) => (
       <g class="group">
-        <rect x={g.x} y={g.y} width={g.w} height={g.h} rx="16" />
+        <rect x={g.x} y={g.y} width={g.w} height={g.h} rx="0" />
         <text x={g.x + 14} y={g.y + g.h - 12}>{g.label}</text>
       </g>
     ))}
@@ -56,8 +56,8 @@ const routed = edges.map((e) => ({ ...e, ...route(e) }))
       const b = box[n.id]
       return (
         <g class:list={['node', { hot: n.hot }]}>
-          <rect class="lip" x={b.x} y={b.y + LIP} width={b.w} height={b.h} rx="10" />
-          <rect class="face" x={b.x} y={b.y} width={b.w} height={b.h} rx="10" />
+          <rect class="lip" x={b.x} y={b.y + LIP} width={b.w} height={b.h} rx="0" />
+          <rect class="face" x={b.x} y={b.y} width={b.w} height={b.h} rx="0" />
           <text class="label" x={b.x + b.w / 2} y={b.y + (n.sub ? b.h / 2 - 4 : b.h / 2 + 5)}>{n.label}</text>
           {n.sub && <text class="sub" x={b.x + b.w / 2} y={b.y + b.h / 2 + 13}>{n.sub}</text>}
         </g>

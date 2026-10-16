@@ -8,13 +8,14 @@ export const decisions = [
     id: "rituals",
     name: "Rituals",
     href: "https://github.com/Navknight/rituals",
-    what: "A habit tracker where a day only counts once there’s a photo of you doing the thing.",
+    kind: "Habit tracker",
+    what: "A habit tracker. A day only counts if you post a photo of yourself actually doing the thing.",
     stack: ["Flutter", "Firebase", "TypeScript"],
-    problem: "Keeping photo proof without paying to keep photos",
+    problem: "Photo proof is the whole point, and storing everyone’s photos costs money.",
     chose:
-      "Photos are temporary. They go into a relay folder that gets cleared out daily, oldest first. When one goes missing, the app files a restore request, and whoever still has a copy re-uploads it the next time they open the app. Phones never talk to each other; Firebase just passes the notes.",
+      "Photos don’t stay on the server for long. They land in a relay folder that gets cleared every day. If a friend opens one that’s already gone, the app files a restore request in Firestore, and whoever still has it cached uploads it again the next time they open the app. The phones never talk to each other directly.",
     cost:
-      "If nobody in the group still has the photo, it’s gone. That’s fine. It proved you went to the gym; it was never going to be the wedding album.",
+      "If nobody has a copy, the photo’s gone for good. I can live with that. It only ever had to prove you went to the gym.",
     diagram: {
       width: 680,
       height: 214,
@@ -38,13 +39,14 @@ export const decisions = [
     id: "tally",
     name: "Tally",
     href: "https://github.com/Navknight/tally",
-    what: "A money tracker for Android that reads your bank SMS, so you never type in a transaction.",
+    kind: "Money tracker",
+    what: "An Android money tracker that reads your bank SMS, so you never type in a transaction.",
     stack: ["Flutter", "SQLite"],
-    problem: "Sorting spending into categories without shipping a language model",
+    problem: "Sorting spending into categories without bundling an AI model.",
     chose:
-      "Everything lives in one SQLite file on the phone, and the app has no internet access at all. Tell it a merchant is food once and it remembers, using plain lookup tables and counts. Amounts are whole paise, because floats and money don’t mix.",
+      "The app has no internet permission at all. Everything sits in one SQLite file on the phone. Tell it a merchant is food once and it remembers, using plain lookup tables and counts. Money is stored in whole paise, because floats and money don’t mix.",
     cost:
-      "It only knows what you’ve taught it, and it reads SMS only while it’s open, since there’s no background service. Similar apps bundle a model of about 1.5 GB for this job. Tally counts.",
+      "It only knows what you’ve taught it. There’s no background service either, so it reads new SMS only when you open it. Similar apps ship a model of about 1.5 GB for this. Tally just counts.",
     diagram: {
       width: 680,
       height: 236,
@@ -68,13 +70,14 @@ export const decisions = [
     id: "zipzap",
     name: "ZipZap",
     href: "https://github.com/Navknight/zipzap",
-    what: "A Rust library, compiled to WebAssembly, for changing files inside a zip right in the browser.",
+    kind: "Rust library",
+    what: "A Rust library, compiled to WebAssembly, that edits files inside a zip right in the browser.",
     stack: ["Rust", "WebAssembly", "OPFS"],
-    problem: "Editing a zip without unzipping it",
+    problem: "Editing a zip without unzipping it.",
     chose:
-      "Keep every byte up to the central directory exactly as it is, write the new files where the directory used to be, then write a fresh directory that points at them. Nothing gets recompressed, which cut client-side memory by over 80%.",
+      "Leave every byte before the central directory exactly where it is. Write the new files where the old directory used to be, then a fresh directory that points at them. Nothing gets recompressed, and client-side memory use dropped by over 80%.",
     cost:
-      "Replaced files leave their old bytes behind, new files go in uncompressed, and nothing past 4 GB (no ZIP64). For small files in a browser tab, a good deal.",
+      "Replaced files leave their old bytes behind, new files go in uncompressed, and there’s no ZIP64, so nothing over 4 GB. For small files in a browser tab, I’ll take that deal.",
     diagram: {
       width: 680,
       height: 170,
@@ -94,13 +97,14 @@ export const decisions = [
     id: "goxchange",
     name: "GoXchange",
     href: "https://github.com/Navknight/GoXchange",
-    what: "A limit order book in Go, fed replayed Binance data over gRPC, built to learn how exchanges actually work.",
+    kind: "Order book",
+    what: "A limit order book in Go, fed with replayed Binance data over gRPC. I built it to learn how exchanges work.",
     stack: ["Go", "gRPC"],
-    problem: "Letting everyone trade against one order book without locking it",
+    problem: "Lots of traders, one order book, and no locks.",
     chose:
-      "One goroutine owns the book and does everything to it, in order. Every gRPC call arrives on its own goroutine, sends a typed request down a channel and waits for the answer. It’s the LMAX idea: nothing to lock, because nobody else can touch the state. Market data goes out through a publisher that drops events for readers who can’t keep up, so one slow reader can’t stall the book.",
+      "One goroutine owns the book and does all the work, one request at a time. Each gRPC call sends a typed request down a channel and waits for the reply. It’s the LMAX idea. If only one thing can touch the state, there’s nothing to lock. Market data goes out through a publisher that drops events for slow readers, so they can’t hold up the book.",
     cost:
-      "Throughput tops out at whatever one goroutine can do, and I wrote that down on purpose. Replies go into a channel with room for one message, so a caller who gives up waiting can’t freeze the loop either.",
+      "Throughput is capped at what one goroutine can do. I knew that going in and wrote it down. Replies go into a channel with room for one message, so a caller that stops waiting can’t jam the loop either.",
     diagram: {
       width: 680,
       height: 214,
@@ -123,14 +127,15 @@ export const decisions = [
   {
     id: "flash",
     name: "flash",
-    href: "https://ec2-13-235-42-117.ap-south-1.compute.amazonaws.com",
-    what: "Live study battles: race classmates through a deck, or go one-on-one on a coding problem with Elo matchmaking.",
+    href: "https://flashbattles.me",
+    kind: "Multiplayer app",
+    what: "Live study battles. Race your classmates through a deck, or go 1-on-1 on a coding problem (4 languages, matched by Elo).",
     stack: ["TypeScript", "Socket.IO", "Postgres", "Judge0", "AWS"],
-    problem: "Running live rooms and strangers’ code on one small server",
+    problem: "Live rooms and strangers’ code, on one small server.",
     chose:
-      "Everything runs on a single EC2 box under Docker Compose, and only Caddy faces the internet. Caddy serves the app and hands the API and websockets to a Fastify and Socket.IO backend, where every battle is a Socket.IO room. Submitted code runs in a self-hosted Judge0 with its own workers, not in the backend. Every push to main redeploys.",
+      "It’s all one EC2 box running Docker Compose, and only Caddy faces the internet. Caddy serves the app and hands the API and websockets to a Fastify + Socket.IO backend, where each battle is a room. Submitted code runs in a self-hosted Judge0 on its own workers, well away from the backend. Every push to main redeploys.",
     cost:
-      "One box is one failure domain: if it goes down, every room goes with it. Judge0 also needs x86 and cgroup v1, which chose the instance type and the kernel settings for me.",
+      "One box is one point of failure. If it goes down, every room goes with it. Judge0 also needs x86 and cgroup v1, so it picked my instance type and kernel settings for me.",
     diagram: {
       width: 680,
       height: 228,
@@ -160,25 +165,25 @@ export const projects = [
     name: "browser.security",
     href: "https://browser.security",
     blurb:
-      "An open-source kit I co-created at SquareX that reproduces 30+ tricks web security gateways miss. We showed it at DEF CON, and Forbes wrote it up.",
+      "SquareX research on files that sneak past web security gateways. As an intern I wrote 29 of its 46 attack simulations and the demo site. It went to DEF CON 32, and Forbes covered it.",
   },
   {
     name: "Wattle",
     href: "https://github.com/Navknight/Wattle",
     blurb:
-      "A native GNOME client for WhatsApp Web in GTK4 and WebKitGTK instead of Electron, with a separate session for every account.",
+      "WhatsApp Web as a proper GNOME app, in GTK4 and WebKitGTK instead of Electron. Each account gets its own session.",
   },
   {
     name: "gphotos",
     href: "https://github.com/Navknight/gphotos",
     blurb:
-      "Turns a Google Takeout back into a photo library you own: pairs photos with their JSON sidecars, deduplicates, and writes the metadata in without overwriting what the camera recorded.",
+      "Turns a Google Takeout back into a real photo library. It matches photos to their JSON sidecars, drops duplicates, and writes the dates back in without clobbering what the camera saved.",
   },
   {
     name: "CUDA softmax",
     href: "https://github.com/Navknight/softmax",
     blurb:
-      "Softmax over 10 million floats, written from scratch in CUDA and raced on a T4 against Triton, PyTorch, CuPy, JAX and TensorFlow.",
+      "Softmax over 10M floats, hand-written in CUDA on a T4. It went from 21 ms to 0.72 ms, about 13% off the card’s memory-bandwidth floor.",
   },
 ];
 
@@ -196,10 +201,10 @@ export const archive = [
     { name: "gphotos", href: "https://github.com/Navknight/gphotos", blurb: "Rebuilds a real photo library from a Google Takeout, metadata and all." },
   ] },
   { year: 2025, items: [
-    { name: "Dead-block aware prefetching", href: "https://github.com/navknight/mgpusim", blurb: "A multi-GPU cache prefetcher that fills dead blocks; 32% fewer misses in MGPUsim." },
+    { name: "Dead-block aware prefetching", href: "https://github.com/navknight/mgpusim", blurb: "Prefetchers for a multi-GPU simulator. They cut Conv2D cache misses 32%, and throughput still dropped (the shared L2 got crowded)." },
   ] },
   { year: 2024, items: [
-    { name: "browser.security", href: "https://browser.security", blurb: "30+ browser tricks that security gateways miss. Shown at DEF CON." },
+    { name: "browser.security", href: "https://browser.security", blurb: "46 ways to sneak a file past a web security gateway. I wrote 29. Shown at DEF CON 32." },
     { name: "Parallel TTMc", href: "https://github.com/cyclops-community/ctf", blurb: "Sparse tensor-times-matrix chain for the Cyclops Tensor Framework, 11× faster." },
     { name: "chessGPT", href: "https://github.com/Navknight/chessGPT", blurb: "A chess AI with minimax and alpha-beta pruning that you can play in the browser." },
   ] },
@@ -215,3 +220,25 @@ export const archive = [
 // Build-safe view-transition-name from any slug
 export const vtName = (prefix, slug) =>
   `${prefix}-${slug.toLowerCase().replace(/[^a-z0-9-]+/g, "-")}`;
+
+// The day job, drawn for the home page hero. From the "how the systems fit
+// together" note in career-ops cv.md; the hot path is a sign-in.
+export const dayJob = {
+  width: 680,
+  height: 214,
+  nodes: [
+    { id: "console", x: 0, y: 24, w: 150, label: "admin console", sub: "React" },
+    { id: "ext", x: 265, y: 24, w: 150, label: "extension", sub: "enforces policy", hot: true },
+    { id: "chromium", x: 530, y: 24, w: 150, label: "Chromium fork", sub: "C++ device checks" },
+    { id: "mdm", x: 0, y: 150, w: 150, label: "MDM", sub: "8 of them" },
+    { id: "idp", x: 265, y: 150, w: 150, label: "identity provider", sub: "Go, OIDC", hot: true },
+    { id: "sso", x: 530, y: 150, w: 150, label: "Entra ID / Okta", sub: "you, signing in" },
+  ],
+  edges: [
+    { from: "console", to: "ext", label: "policy" },
+    { from: "chromium", to: "ext", label: "posture" },
+    { from: "console", to: "mdm", label: "install scripts" },
+    { from: "sso", to: "idp", label: "trusted?", hot: true },
+    { from: "idp", to: "ext", label: "checks the session", hot: true },
+  ],
+};

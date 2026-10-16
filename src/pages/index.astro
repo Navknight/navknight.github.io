@@ -4,7 +4,7 @@ import Insight from '../components/Insight.astro'
 import { getCollection } from 'astro:content'
 import { problemRows } from '../lib/dsa.js'
 import Diagram from '../components/Diagram.astro'
-import { decisions, projects, vtName } from '../data/site.js'
+import { decisions, projects, archive, dayJob, vtName } from '../data/site.js'
 
 const posts = (await getCollection('blog')).sort((a, b) => b.data.date - a.data.date).slice(0, 3)
 
@@ -16,6 +16,8 @@ const recent = problems
   .sort((a, b) => dated.get(`problems/${b.slug}`) - dated.get(`problems/${a.slug}`))
   .slice(0, 5)
 
+const builtCount = archive.reduce((n, y) => n + y.items.length, 0)
+const pad = (i) => String(i + 1).padStart(2, '0')
 const readingTime = (body = '') => Math.max(1, Math.round(body.split(/\s+/).filter(Boolean).length / 220))
 const fmt = (d) => d.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' })
 
@@ -34,65 +36,89 @@ const jsonLd = {
   jsonLd={jsonLd}
 >
   <section class="hero">
-    <h1 class="hero-line">I build backend systems, and I’ve spent two years convincing Chromium to do things it was never built for.</h1>
-    <div class="hero-body">
-      <p class="lede">
-        That was at SquareX, and then at Zscaler after it bought us, where I was on
-        the founding team of the Zero Trust Browser. Now I’m after architecture roles, where drawing the boxes and arrows is the actual job.
-        Below are a few I drew earlier.
-      </p>
+    <div class="hero-main">
+      <p class="label"><b>01</b> / Hello</p>
+      <h1>I build backends and argue with <em class="hl">Chromium</em>.</h1>
+      <div class="hero-copy">
+        <p class="lede">
+          I’m Abhinav. For 2 years I worked on the Zero Trust Browser, first at
+          SquareX and then at Zscaler, after it bought SquareX.
+        </p>
+        <p class="lede">
+          Most days I was in a Go identity provider, a big React admin console
+          or C++ inside a Chromium fork. Now I want an architecture role.
+          Drawing the boxes was always my favourite bit, so here’s one.
+        </p>
+      </div>
       <div class="actions">
         <a class="btn primary" href="mailto:abhi.gupta8802@gmail.com">Email me</a>
+        <a class="btn" href="https://drive.google.com/file/d/1pi1zhwX6OfzqSGr0NFxfJRJ7-5XqyCKA/view">Résumé</a>
         <a class="btn" href="https://github.com/Navknight">GitHub</a>
         <a class="btn" href="https://linkedin.com/in/abhinav-gupta-iitt/">LinkedIn</a>
-        <a class="btn" href="https://drive.google.com/file/d/1pi1zhwX6OfzqSGr0NFxfJRJ7-5XqyCKA/view">Résumé</a>
       </div>
     </div>
+    <figure class="hero-fig">
+      <div class="build-top"><span class="label">The day job, roughly</span><span class="label">SquareX → Zscaler</span></div>
+      <Diagram id="dg-dayjob" title="How the Zero Trust Browser fits together: the admin console sends policy to the extension, the Chromium fork feeds it device posture, and at sign-in Entra ID or Okta asks the identity provider, which checks the browser session." {...dayJob} />
+      <figcaption>
+        The teal path is you signing in. Okta asks my identity provider whether
+        you’re on a trusted browser, and the identity provider asks the browser.
+        Wrong browser, no login.
+      </figcaption>
+    </figure>
   </section>
 
-  <section class="section" aria-labelledby="decisions-h">
-    <h2 id="decisions-h" class="big-h">Decisions, and what they cost</h2>
-    <div class="decisions">
-      {decisions.map((d) => (
-        <article class="decision" id={d.id}>
-          <div class="d-meta">
+  <section class="band" aria-labelledby="builds-h">
+    <div class="band-head"><p class="label"><b>02</b> / Things I built</p><p class="label">Each with the decision that made it interesting</p></div>
+    <div class="band-title">
+      <h2 id="builds-h">The fun part is <em class="hl">the trade-off</em>.</h2>
+      <p>Each of these had one decision that the rest of the code had to live with. Here it is for each one, with a drawing and the bill.</p>
+    </div>
+    <div class="cells two">
+      {decisions.map((d, i) => (
+        <article class="build" id={d.id}>
+          <div class="build-top"><span class="num">{pad(i)}</span><span class="label">{d.kind}</span></div>
+          <Diagram id={`dg-${d.id}`} title={`${d.name}: ${d.problem}`} {...d.diagram} />
+          <div class="build-body">
             <h3><a href={d.href}>{d.name}<span class="ext" aria-hidden="true">↗</span></a></h3>
-            <p>{d.what}</p>
+            <p class="what">{d.what}</p>
             <ul class="tags">{d.stack.map((s) => <li class="tag">{s}</li>)}</ul>
-          </div>
-          <div class="d-body">
-            <p class="d-problem">{d.problem}</p>
-            <Diagram id={`dg-${d.id}`} title={`${d.name}: ${d.problem}`} {...d.diagram} />
-            <dl class="d-record">
-              <div><dt>What I chose</dt><dd>{d.chose}</dd></div>
-              <div><dt>What it cost</dt><dd>{d.cost}</dd></div>
+            <p class="problem">{d.problem}</p>
+            <dl class="record">
+              <div><dt>What I did</dt><dd>{d.chose}</dd></div>
+              <div><dt>The catch</dt><dd>{d.cost}</dd></div>
             </dl>
           </div>
         </article>
       ))}
+      <div class="more">
+        <div>
+          <p class="label">Next up</p>
+          <h3>Plus a <em class="hl">pile</em> of smaller ones.</h3>
+          <p>A Lua interpreter, a chess bot, a GPU cache prefetcher, a bus tracker for campus. All {builtCount}, by year.</p>
+        </div>
+        <a class="btn" href="/projects">All projects</a>
+      </div>
     </div>
   </section>
 
-  <section class="section" aria-labelledby="smaller-h">
-    <div class="section-head">
-      <h2 id="smaller-h">Smaller things</h2>
-      <a href="/projects">All projects</a>
-    </div>
-    <ul class="work">
-      {projects.map((p) => (
-        <li>
+  <section class="band" aria-labelledby="smaller-h">
+    <div class="band-head"><p class="label"><b>03</b> / Smaller things</p><a class="label" href="/projects">All projects ↗</a></div>
+    <h2 id="smaller-h" class="sr">Smaller things</h2>
+    <div class="cells four">
+      {projects.map((p, i) => (
+        <div class="thing">
+          <span class="label">{pad(i)}</span>
           <h3><a href={p.href}>{p.name}<span class="ext" aria-hidden="true">↗</span></a></h3>
           <p>{p.blurb}</p>
-        </li>
+        </div>
       ))}
-    </ul>
+    </div>
   </section>
 
-  <section class="section" aria-labelledby="writing-h">
-    <div class="section-head">
-      <h2 id="writing-h">Writing</h2>
-      <a href="/blog">All posts</a>
-    </div>
+  <section class="band" aria-labelledby="writing-h">
+    <div class="band-head"><p class="label"><b>04</b> / Writing</p><a class="label" href="/blog">All posts ↗</a></div>
+    <h2 id="writing-h" class="sr">Writing</h2>
     <ul class="rows">
       {posts.map((post) => (
         <li>
@@ -107,11 +133,9 @@ const jsonLd = {
     </ul>
   </section>
 
-  <section class="section" aria-labelledby="notes-h">
-    <div class="section-head">
-      <h2 id="notes-h">Recently solved</h2>
-      <a href="/dsa">All {problems.length} problems</a>
-    </div>
+  <section class="band" aria-labelledby="notes-h">
+    <div class="band-head"><p class="label"><b>05</b> / Recently solved</p><a class="label" href="/dsa">All {problems.length} problems ↗</a></div>
+    <h2 id="notes-h" class="sr">Recently solved</h2>
     <ul class="insights">
       {recent.map((p) => (
         <li>
@@ -121,9 +145,19 @@ const jsonLd = {
       ))}
     </ul>
     <p class="note-foot">
-      I write up every problem I solve in an Obsidian vault: the one idea that
+      Every problem I solve gets a note in my Obsidian vault: the one idea that
       cracks it, the complexity, and the code. <a href="/lab">The lab</a> has
-      two small games about caches and backend latency.
+      two small games about caches and backend latency, if you’d rather play.
     </p>
+  </section>
+
+  <section class="band hello" aria-labelledby="hello-h">
+    <p class="label">06 / Say hi</p>
+    <h2 id="hello-h">My inbox is <em class="hl">open</em>.</h2>
+    <p>I’m job hunting. Email gets to me fastest.</p>
+    <div class="actions">
+      <a class="btn primary" href="mailto:abhi.gupta8802@gmail.com">Email me</a>
+      <a class="btn" href="https://drive.google.com/file/d/1pi1zhwX6OfzqSGr0NFxfJRJ7-5XqyCKA/view">Résumé</a>
+    </div>
   </section>
 </Base>
