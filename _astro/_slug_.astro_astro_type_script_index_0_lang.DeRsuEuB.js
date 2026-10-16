@@ -1,0 +1,1 @@
+import{t as e}from"./preload-helper.B3nfOi5I.js";var t={digits:()=>e(()=>import(`./digits.C6fjZOwh.js`),[])};document.querySelectorAll(`[data-demo]`).forEach(e=>{let n=t[e.dataset.demo];n?.().then(t=>t.default(e))});
